@@ -1,0 +1,4 @@
+
+{% macro timeago_element(time) %}
+    <time class="timeago" datetime="{{ time|date('c') }}">{{ time|date('c')}}</time>
+{% endmacro %}

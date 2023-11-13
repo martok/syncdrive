@@ -1,0 +1,9 @@
+{% macro vstyle(variable, erronly = false) -%}
+    {%- if not variable is null -%}
+        {%- if variable is same as(true) -%}
+            {%- if not erronly %}uk-form-success{% endif -%}
+        {%- else -%}
+            uk-form-danger
+        {%- endif -%}
+{%- endif -%}
+{%- endmacro %}

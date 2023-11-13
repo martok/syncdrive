@@ -1,0 +1,47 @@
+.button-collapse,
+.button-expand {
+  cursor: pointer;
+}
+
+:not(.uk-open) {
+  .button-collapse {
+    display: none;
+  }
+
+  .button-expand {
+    display: unset;
+  }
+}
+
+.uk-open {
+  .button-collapse {
+    display: unset;
+  }
+
+  .button-expand {
+    display: none;
+  }
+}
+
+.sidebar-collapsible {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+  flex-shrink: 0;
+  transition: width .2s ease;
+
+  &:not(.uk-open) {
+    width: 1em !important;
+    & > :not(.sidebar-header) {
+      display: none !important;
+    }
+  }
+}
+
+.sidebar-header {
+  height: 2em;
+  min-height: 2em;
+  line-height: 2em;
+  overflow: hidden;
+  border-bottom: 1px solid slategrey;
+}

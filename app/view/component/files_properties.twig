@@ -1,0 +1,44 @@
+{% from "macros/general.twig" import timeago_element %}
+
+<ul id="file-details" uk-accordion="collapsible:false">
+    <li id="file-details-tab-info" class="uk-open">
+        <a class="uk-accordion-title" href="#">Info</a>
+        <div class="uk-accordion-content">
+            <table class="uk-table" id="selected-file-properties">
+                <tr>
+                    <th class="uk-width-1-4">Size</th>
+                    <td>Size</td>
+                </tr>
+                <tr>
+                    <th>Modified</th>
+                    <td>{{ timeago_element(0) }}</td>
+                </tr>
+                <tr>
+                    <th>Owner</th>
+                    <td></td>
+                </tr>
+                <tr class="deleted-file-only">
+                    <th>Deleted at</th>
+                    <td>{{ timeago_element(0) }}</td>
+                </tr>
+            </table>
+        </div>
+    </li>
+    <li id="file-details-tab-versions">
+        <a class="uk-accordion-title" href="#">Revisions</a>
+        <div class="uk-accordion-content">
+            <ul class="uk-list uk-list-striped" id="selected-file-versions">
+            </ul>
+        </div>
+    </li>
+    <li id="file-details-tab-shares">
+        <a class="uk-accordion-title" href="#">Sharing</a>
+        <div class="uk-accordion-content">
+            <div id="selected-file-shares-actions" class="toolbar uk-button-group">
+                <button class="uk-button uk-button-default uk-button-small" id="selected-file-shares-new"><i uk-icon="plus"></i>New</button>
+            </div>
+            <ul class="uk-list uk-list-striped" id="selected-file-shares">
+            </ul>
+        </div>
+    </li>
+</ul>

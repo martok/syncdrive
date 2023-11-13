@@ -1,0 +1,27 @@
+{% extends "base/_frontend_full.twig" %}
+{% set view_title = (files.pathsegments ? ((files.pathsegments|last).name ~ " - ") : "") ~ "Browse" %}
+
+{% block content_main %}
+    <div class="full-content file-browser-frame">
+        <div class="files-left sidebar-collapsible uk-open uk-background-muted">
+            <div class="sidebar-header" style="text-align: right">
+                <i class="button-expand uk-icon-link" uk-icon="icon: triangle-right" uk-toggle="target:.files-left; cls:uk-open"></i>
+                <i class="button-collapse uk-icon-link" uk-icon="icon: triangle-left" uk-toggle="target:.files-left; cls:uk-open"></i>
+            </div>
+            {% include "component/files_tree.twig" %}
+            {% include "base/_footer.twig" %}
+        </div>
+        <div class="files-main">
+            {% include "component/files_list.twig" %}
+        </div>
+        <div class="files-right sidebar-collapsible">
+            <div class="sidebar-header">
+                <i class="button-collapse uk-icon-link" uk-icon="icon: triangle-right" uk-toggle="target:.files-right; cls:uk-open"></i>
+                <i class="button-expand uk-icon-link" uk-icon="icon: triangle-left" uk-toggle="target:.files-right; cls:uk-open"></i>
+                <span id="selected-file-name" class="uk-text-bold"></span>
+            </div>
+            {% include "component/files_properties.twig" %}
+        </div>
+    </div>
+    <script src="/static/js/fileview.js" type="module"></script>
+{% endblock %}

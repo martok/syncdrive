@@ -1,0 +1,37 @@
+footer {
+  border-top: 1px solid slategrey;
+}
+
+.full-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  > * {
+    overflow: hidden;
+    flex: 0 0;
+  }
+
+  > .uk-navbar-container {
+    overflow: initial;
+  }
+
+  > .full-content {
+    flex: 1 1;
+  }
+}
+
+.notification-warning {
+  display: flex;
+  font-size: .875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: $color-text-warning;
+  min-height: $uk-navbar-item-height;
+  align-items: center;
+}

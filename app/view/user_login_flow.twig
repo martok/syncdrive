@@ -1,0 +1,19 @@
+{% extends "base/_frontend_container.twig" %}
+{% set view_title = "Authorization" %}
+
+{% block content_main %}
+    <h1>Authorize an app</h1>
+    <p>
+        The following app wants to access your ({{ user.name }}) files:
+    </p>
+    <p class="uk-text-center uk-text-bold">{{ userAgent }}</p>
+    <p>
+        You should only confirm this if you expect this.
+    </p>
+    <form action="{{ flowUri }}" method="POST" class="uk-form-stacked">
+        <input type="hidden" name="response" value="{{ response }}">
+        <button class="uk-button uk-button-primary" type="submit" name="confirm" value="1">Confirm</button>
+        <button class="uk-button uk-button-danger" type="submit" name="confirm" value="0">Decline</button>
+    </form>
+    <p></p>
+{% endblock %}

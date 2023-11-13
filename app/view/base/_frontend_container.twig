@@ -1,0 +1,11 @@
+{% extends "base/_outer.twig" %}
+
+{% block html_body %}
+    {% include "base/_navbar.twig" %}
+    {% include "base/_global_notification.twig" %}
+
+    <main class="uk-container uk-section uk-box-shadow-medium">
+        {% block content_main %}{% endblock %}
+        {% include "base/_footer.twig" %}
+    </main>
+{% endblock %}

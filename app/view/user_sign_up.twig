@@ -1,0 +1,47 @@
+{% extends "base/_frontend_container.twig" %}
+{% from "macros/validation.twig" import vstyle %}
+{% set view_title = "Register" %}
+
+{% block content_main %}
+    <h1>Register</h1>
+    <form action="/user/signup" method="POST" class="uk-form-stacked">
+        <div>
+            <label class="uk-form-label" for="username">Email address</label>
+            <div class="uk-form-controls">
+                <input class="uk-input {{ vstyle(validation.username) }}"
+                       id="username" name="username"
+                       type="email" placeholder="name@example.com" value="{{ form.username }}">
+                {% if not validation.username is same as(true) %}
+                    <div class="uk-text-danger">{{ validation.username }}</div>
+                {% endif%}
+            </div>
+        </div>
+
+        <div>
+            <label class="uk-form-label" for="password">Password</label>
+            <div class="uk-form-controls">
+                <input class="uk-input {{ vstyle(validation.password) }}"
+                       id="password" name="password[]"
+                       type="password" placeholder="Password" value="{{ form.password }}">
+                {% if not validation.password is same as(true) %}
+                    <div class="uk-text-danger">{{ validation.password }}</div>
+                {% endif%}
+            </div>
+        </div>
+
+        <div>
+            <label class="uk-form-label" for="password2">Repeat Password</label>
+            <div class="uk-form-controls">
+                <input class="uk-input {{ vstyle(validation.password2,true) }}"
+                       id="password2" name="password[]"
+                       type="password" placeholder="Repeat Password">
+                {% if not validation.password2 is same as(true) %}
+                    <div class="uk-text-danger">{{ validation.password2 }}</div>
+                {% endif%}
+            </div>
+        </div>
+
+        <button class="uk-button uk-button-primary" type="submit">Register</button>
+    </form>
+    <p></p>
+{% endblock %}

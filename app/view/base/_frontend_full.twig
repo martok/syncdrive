@@ -1,0 +1,10 @@
+{% extends "base/_outer.twig" %}
+
+{% block html_body %}
+    <div class="full-wrapper">
+        {% include "base/_navbar.twig" %}
+        {% include "base/_global_notification.twig" %}
+
+        {% block content_main %}{% endblock %}
+    </div>
+{% endblock %}

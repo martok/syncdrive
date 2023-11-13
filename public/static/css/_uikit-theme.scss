@@ -1,0 +1,162 @@
+
+$color-primary-background: black;
+$color-text-primary: #D2D2D2;
+$color-text-primary-active: darken($color-text-primary, 25);
+
+$color-background: white;
+$color-text: black;
+$color-text-inactive: #555;
+$color-text-active: #222;
+
+$color-text-success: #32d296;
+$color-text-warning: #faa05a;
+$color-text-danger: #f0506e;
+
+$color-table-selected: #deebff;
+$color-table-focused: #1c457e;
+
+$color-button-border: #e5e5e5;
+
+$uk-navbar-item-height: 50px;
+
+html {
+  color: $color-text;
+}
+
+.uk-link, a {
+  color: $color-text-inactive;
+}
+
+.uk-link-toggle:hover .uk-link, .uk-link:hover, a:hover {
+  color: $color-text-active;
+}
+
+.uk-background-primary {
+  background-color: $color-primary-background;
+}
+
+.uk-icon > svg {
+  // override max-width from any graphic element
+  max-width: none;
+}
+
+.uk-icon-link {
+  cursor: pointer;
+}
+
+.uk-iconnav {
+  li {
+    padding: 0 10px;
+  }
+}
+
+.uk-navbar-nav {
+  color: $color-text-primary;
+  font-weight: bold;
+
+  & > li > a {
+    min-height: $uk-navbar-item-height;
+    color: $color-text-primary;
+  }
+
+  & > li.uk-active > a,
+  & > li:hover > a {
+    color: $color-text-primary-active;
+  }
+}
+
+.uk-navbar-dropdown-nav {
+  & > li > a {
+    color: $color-text;
+  }
+  & > li:hover > a {
+    color: $color-text-active;
+  }
+}
+
+.uk-nav-default {
+  color: $color-text;
+
+  & .uk-nav-sub a,
+  & > li > a {
+    color: $color-text-inactive;
+  }
+
+  & .uk-nav-sub li.uk-active > a,
+  & .uk-nav-sub a:hover,
+  & > li:hover > a {
+    color: $color-text-active;
+  }
+}
+.uk-nav.uk-text-right li>a {
+  flex-direction: row-reverse;
+}
+
+.uk-breadcrumb {
+  &> * > * {
+    color: $color-text-inactive;
+  }
+  &> * > :hover {
+    color: $color-text-active;
+  }
+}
+
+.uk-table {
+  * + & {
+    margin-top: 0px;
+  }
+
+  th {
+    color: $color-text-inactive;
+  }
+
+  tr.row-selected {
+    background-color: $color-table-selected !important;
+  }
+
+  tr.row-focused {
+    >td {
+      border-top: 1px solid $color-table-focused;
+      border-bottom: 1px solid $color-table-focused;
+    }
+  }
+
+  tr>td {
+    white-space: nowrap;
+  }
+}
+
+.uk-accordion {
+  margin: 0;
+
+  .uk-accordion-title {
+    color: $color-text-inactive;
+  }
+  li.uk-open > .uk-accordion-title,
+  .uk-accordion-title:hover {
+    color: $color-text-active;
+  }
+}
+
+.uk-button {
+  i.uk-icon {
+    vertical-align: text-top;
+  }
+}
+
+.uk-form-stacked {
+  .uk-form-controls {
+    margin-left: 5px;
+  }
+}
+
+.uk-fieldset {
+  border: 1px solid $color-button-border;
+  padding: 5px;
+  margin: 5px;
+}
+
+.uk-legend {
+  color: $color-text-active;
+  font-size: .875rem;
+}

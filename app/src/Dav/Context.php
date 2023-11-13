@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Dav;
+
+use App\Model\Inodes;
+use App\ObjectStorage\IStorageBackend;
+use App\ObjectStorage\ObjectStorage;
+use Nepf2\Application;
+use Nepf2\Util\ClassUtil;
+use Sabre\DAV\Exception;
+use Sabre\DAV\Tree;
+
+class Context
+{
+    public readonly ?ObjectStorage $storage;
+    private ?Tree $filesView;
+    private bool $isReadonly;
+
+    public function __construct(
+        public Application $app,
+        public Identity $identity
+    )
+    {
+        $this->isReadonly = $app->cfg('site.readonly') || $app->cfg('site.maintenance');
+    }
+
+    public function setupStorage(): void
+    {
+        $storageCfg = $this->app->cfg('storage');
+
+        $backendClass = $storageCfg['class'];
+        if (!ClassUtil::IsClass($backendClass) ||
+            !ClassUtil::ImplementsInterface($backendClass, IStorageBackend::class)) {
+            throw new \App\Exception("Configured storage class {$storageCfg['class']} not found or invalid!");
+        }
+
+        $backend = new $backendClass($this->app, $storageCfg);
+
+        $this->storage = new ObjectStorage($backend);
+        $this->storage->setChunkSize(ini_parse_quantity($storageCfg['chunkSize'] ?? '1M'));
+    }
+
+    private function createFilesView(): Tree
+    {
+        switch ($this->identity->type) {
+            case Identity::TYPE_USER:
+                $root = Node::FromInode($this->identity->user->root(), $this);
+                assert($root instanceof Directory && $root instanceof IACLTarget);
+                $root->inheritPerms(new PermSet(Perm::DEFAULT_OWNED));
+                return new Tree($root);
+            case Identity::TYPE_SHARE:
+                $share = $this->identity->share;
+                $perm = new PermSet($share->permissions ?? '');
+                if ($inode = Inodes::Find($share->inode_id)) {
+                    $node = Node::FromInode($inode, $this);
+                    if (!$node instanceof Directory)
+                        $node = new VirtualRoot('', [$node]);
+                    $node->inheritPerms($perm);
+                    return new Tree($node);
+                }
+                /* fallthrough */
+            case Identity::TYPE_UNAUTHENTICATED:
+            default:
+                return new Tree(new VirtualRoot(''));
+        }
+    }
+
+    public function getFilesView(): Tree
+    {
+        return $this->filesView ??= $this->createFilesView();
+    }
+
+    public function getFilesRootInode(): ?Inodes
+    {
+        switch ($this->identity->type) {
+            case Identity::TYPE_USER:
+                return $this->identity->user->root();
+
+            case Identity::TYPE_UNAUTHENTICATED:
+            default:
+                return null;
+        }
+    }
+
+    public function getNode(string $uri, bool $disallowRoot=true): ?Node
+    {
+        $tree = $this->getFilesView();
+        try {
+            $node = $tree->getNodeForPath($uri);
+            if (!($node instanceof Node))
+                // this method intentionally returns null for VirtualRoot
+                return null;
+            if ($disallowRoot && !$node->getInode(false)->parent_id)
+                return null;
+            return $node;
+        } catch (Exception\NotFound) {
+            return null;
+        }
+    }
+
+    /**
+     * If the app settings limit modification, remove all permissions but
+     * keep flags intact.
+     */
+    public function filterPermissions(PermSet $effectivePermissions): PermSet
+    {
+        if ($this->isReadonly)
+            return $effectivePermissions->without(Perm::INHERITABLE_MASK);
+        return $effectivePermissions;
+    }
+
+    public function isChunkedV1Request(): bool
+    {
+        return !is_null($this->app->request()->getHeader('OC-Chunked'));
+    }
+
+    public function OCRequestMTime(): ?int
+    {
+        $ts = $this->app->request()->getHeader('X-OC-MTime');
+        return is_null($ts) ? null : (int)$ts;
+    }
+
+    public function forceDownloadResponse(): bool
+    {
+        $req = $this->app->request();
+        if ($req->int('dl') === 1)
+            return true;
+        if ($req->int('raw') === 1)
+            return false;
+        return true;
+    }
+}

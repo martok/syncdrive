@@ -1,0 +1,43 @@
+table.sortable {
+  user-select: none;
+  -moz-user-select: none;
+  cursor: default;
+
+  th:not(.column-sortable) {
+    .sortable-arrow-up,
+    .sortable-arrow-down {
+      display: none;
+    }
+  }
+
+  .column-sortable {
+    cursor: pointer;
+
+    &:not(.column-sorted) {
+      .sortable-arrow-up,
+      .sortable-arrow-down {
+        display: none;
+      }
+    }
+
+    &.column-sorted {
+      .sortable-arrow-up {
+        display: initial;
+      }
+
+      .sortable-arrow-down {
+        display: none;
+      }
+
+      &.column-sorted-desc {
+        .sortable-arrow-up {
+          display: none;
+        }
+
+        .sortable-arrow-down {
+          display: initial;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{% extends "base/_frontend_container.twig" %}
+{% set view_title = "Password required" %}
+
+{% block content_main %}
+    <h1>Password required</h1>
+    <p>
+        Access to the shared folder <em>{{ share.name }}</em> by <em>{{ share.sharer }}</em> is
+        password-protected.
+    </p>
+    <form method="POST" class="uk-form-stacked">
+        <input type="hidden" name="authenticate" value="1">
+        <div>
+            <label class="uk-form-label" for="password">Password</label>
+            <div class="uk-form-controls">
+                <input class="uk-input"
+                       id="password" name="password"
+                       type="password" placeholder="Password">
+            </div>
+        </div>
+        <button class="uk-button uk-button-primary" type="submit">Continue</button>
+    </form>
+{% endblock %}

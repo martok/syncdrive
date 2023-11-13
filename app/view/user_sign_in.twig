@@ -1,0 +1,40 @@
+{% extends "base/_frontend_container.twig" %}
+{% from "macros/validation.twig" import vstyle %}
+{% set view_title = "Log In" %}
+
+{% block content_main %}
+    <h1>Sign in</h1>
+    <form action="/user/login" method="POST" class="uk-form-stacked">
+
+        <div>
+            <label class="uk-form-label" for="username">Email address</label>
+            <div class="uk-form-controls">
+                <input class="uk-input {{ vstyle(validation.username) }}"
+                       id="username" name="username"
+                       type="email" placeholder="name@example.com" value="{{ form.username }}">
+                {% if not validation.username is same as(true) %}
+                    <div class="uk-text-danger">{{ validation.username }}</div>
+                {% endif%}
+            </div>
+        </div>
+
+        <div>
+            <label class="uk-form-label" for="password">Password</label>
+            <div class="uk-form-controls">
+                <input class="uk-input"
+                       id="password" name="password"
+                       type="password" placeholder="Password">
+            </div>
+        </div>
+
+        <div>
+            <div class="uk-form-controls">
+                <label><input class="uk-check"
+                              id="rememberme" name="rememberme"
+                              type="checkbox" value="remember-me"> Remember me</label>
+            </div>
+        </div>
+        <button class="uk-button uk-button-primary" type="submit">Sign in</button>
+    </form>
+    <p></p>
+{% endblock %}

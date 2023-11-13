@@ -1,0 +1,20 @@
+<ul class="uk-nav uk-nav-default files-tree">
+    <li class="{% if not files.breadcrumbs %} uk-active{% endif %}">
+        <a href="/browse"><i uk-icon="server"></i>Home</a>
+        <ul class="uk-nav-sub">
+            {% for segment in files.breadcrumbs %}
+                <li {% if loop.last %}class="uk-active"{% endif %}><a href="/browse/{{ segment.path }}"><i uk-icon="folder"></i>{{ segment.name }}</a>
+                    <ul class="uk-nav-default">
+            {% endfor %}
+                {% for file in files.list %}
+                    {% if file.isFolder %}
+                        <li><a href="{{ files.base }}/{{ file.path }}"><i uk-icon="folder"></i>{{ file.name }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            {% for segment in files.breadcrumbs %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </li>
+</ul>

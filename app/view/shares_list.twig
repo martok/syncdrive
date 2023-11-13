@@ -1,0 +1,66 @@
+{% extends "base/_frontend_container.twig" %}
+{% set view_title = "Shared Items" %}
+{% from "macros/general.twig" import timeago_element %}
+
+
+{% block created_shares %}
+    <table class="uk-table uk-table-striped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th class="uk-width-1-5">Modified</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for share in created %}
+            <tr>
+                <td><a href="/browse{{ share.path }}"><i uk-icon="link"></i>{{ share.name }}</a></td>
+                <td>{{ timeago_element(share.modified) }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block received_shares %}
+    <table class="uk-table uk-table-striped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th class="uk-width-1-4">Shared by</th>
+            <th class="uk-width-1-5">Modified</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for share in received %}
+            <tr>
+                <td><a href="/browse{{ share.path }}"><i uk-icon="link"></i>{{ share.name }}</a></td>
+                <td>{{ share.sharedBy }}</a></td>
+                <td>{{ timeago_element(share.modified) }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block content_main %}
+    <h1>Shared Items</h1>
+
+    <h2>Shared by me</h2>
+        {% if not created %}
+            <p>No items.</p>
+        {% else %}
+            {{ block('created_shares') }}
+        {% endif %}
+
+    <h2>Shared with me</h2>
+        {% if not received %}
+            <p>No items.</p>
+        {% else %}
+            {{ block('received_shares') }}
+        {% endif %}
+
+    <script type="text/javascript" defer>
+        $('time').timeago();
+    </script>
+{% endblock %}

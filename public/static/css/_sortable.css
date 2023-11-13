@@ -1,0 +1,30 @@
+table.sortable {
+  user-select: none;
+  -moz-user-select: none;
+  cursor: default;
+}
+table.sortable th:not(.column-sortable) .sortable-arrow-up,
+table.sortable th:not(.column-sortable) .sortable-arrow-down {
+  display: none;
+}
+table.sortable .column-sortable {
+  cursor: pointer;
+}
+table.sortable .column-sortable:not(.column-sorted) .sortable-arrow-up,
+table.sortable .column-sortable:not(.column-sorted) .sortable-arrow-down {
+  display: none;
+}
+table.sortable .column-sortable.column-sorted .sortable-arrow-up {
+  display: initial;
+}
+table.sortable .column-sortable.column-sorted .sortable-arrow-down {
+  display: none;
+}
+table.sortable .column-sortable.column-sorted.column-sorted-desc .sortable-arrow-up {
+  display: none;
+}
+table.sortable .column-sortable.column-sorted.column-sorted-desc .sortable-arrow-down {
+  display: initial;
+}
+
+/*# sourceMappingURL=_sortable.css.map */

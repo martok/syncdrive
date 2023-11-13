@@ -1,0 +1,37 @@
+<nav class="uk-navbar-container">
+    <nav uk-navbar class="uk-background-primary">
+
+        <div class="uk-navbar-left uk-margin-left">
+            <ul class="uk-navbar-nav">
+                <li class="uk-active"><a href="/">Home</a></li>
+                {% if not navbar_dummy %}
+                    {% if user.name %}
+                    <li><a href="/shares">Shares</a></li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+        </div>
+
+        {% if not navbar_dummy %}
+        <div class="uk-navbar-right uk-margin-right">
+            <ul class="uk-navbar-nav">
+                {% if user.name %}
+                <li>
+                    <a href="#">{{ user.name }} <span uk-navbar-parent-icon></span></a>
+                    <div class="uk-navbar-dropdown uk-text-right" uk-drop="offset:0">
+                        <ul class="uk-nav uk-navbar-dropdown-nav uk-text-right">
+                            <li><a href="/user/settings">Settings</a></li>
+                            <li class="uk-nav-divider"></li>
+                            <li><a href="/user/logout">Logout</a></li>
+                        </ul>
+                    </div>
+                </li>
+                {% else %}
+                    <li><a href="/user/signup">Sign Up</a></li>
+                    <li><a href="/user/login">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </nav>
+</nav>
