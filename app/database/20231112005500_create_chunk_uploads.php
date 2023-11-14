@@ -4,8 +4,8 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateChunkedUploads extends AbstractMigration
 {
-	public function up()
-	{
+	public function up(): void
+    {
 		$schema = $this->db->createSchema();
 		$schema->create('chunked_uploads')
 			->int('id', 16)->increment()
@@ -28,8 +28,8 @@ class CreateChunkedUploads extends AbstractMigration
         $schema->execute();
 	}
 
-	public function down()
-	{
+	public function down(): void
+    {
 		$schema = $this->db->createSchema();
 		$schema->drop('chunked_uploads');
 		$schema->drop('chunked_upload_parts');

@@ -4,8 +4,8 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateInodes extends AbstractMigration
 {
-	public function up()
-	{
+	public function up(): void
+    {
 		$schema = $this->db->createSchema();
 		$schema->create('inodes')
 			->int('id', 16)->increment()
@@ -44,8 +44,8 @@ class CreateInodes extends AbstractMigration
         $schema->execute();
 	}
 
-	public function down()
-	{
+	public function down(): void
+    {
 		$schema = $this->db->createSchema();
 		$schema->drop('inodes');
 		$schema->drop('file_versions');

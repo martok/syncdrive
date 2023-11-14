@@ -8,9 +8,9 @@ class AppPasswords extends \Pop\Db\Record\Encoded
 {
     const APP_PASSWORD_LEN = 72;
 
-    protected $hashFields      = ['password'];
-    protected $hashAlgorithm   = PASSWORD_BCRYPT;
-    protected $hashOptions     = ['cost' => 5];
+    protected array $hashFields      = ['password'];
+    protected string $hashAlgorithm   = PASSWORD_BCRYPT;
+    protected array $hashOptions     = ['cost' => 5];
 
     /*
      * int id

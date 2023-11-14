@@ -4,8 +4,8 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateShares extends AbstractMigration
 {
-	public function up()
-	{
+	public function up(): void
+    {
 		$schema = $this->db->createSchema();
         $schema->create('inode_shares')
             ->int('id', 16)->increment()
@@ -21,8 +21,8 @@ class CreateShares extends AbstractMigration
         $schema->execute();
 	}
 
-	public function down()
-	{
+	public function down(): void
+    {
 		$schema = $this->db->createSchema();
 		$schema->drop('shared_inodes');
 		$schema->drop('external_shares');

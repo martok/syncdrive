@@ -6,8 +6,8 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class UserRoot extends AbstractMigration
 {
-	public function up()
-	{
+	public function up(): void
+    {
         // create roots for users that don't have one
         foreach (Users::findAll() as $user) {
             $root = $user->root();
@@ -19,8 +19,8 @@ class UserRoot extends AbstractMigration
         }
 	}
 
-	public function down()
-	{
+	public function down(): void
+    {
 	}
 
 }

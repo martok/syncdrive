@@ -4,8 +4,8 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateLocks extends AbstractMigration
 {
-	public function up()
-	{
+	public function up(): void
+    {
 		$schema = $this->db->createSchema();
         $schema->create('inode_locks')
             ->int('id', 16)->increment()
@@ -21,8 +21,8 @@ class CreateLocks extends AbstractMigration
         $schema->execute();
 	}
 
-	public function down()
-	{
+	public function down(): void
+    {
 		$schema = $this->db->createSchema();
 		$schema->drop('inode_locks');
         $schema->execute();

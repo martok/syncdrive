@@ -4,9 +4,9 @@ namespace App\Model;
 
 class Users extends \Pop\Db\Record\Encoded
 {
-    protected $hashFields      = ['password'];
-    protected $hashAlgorithm   = PASSWORD_BCRYPT;
-    protected $hashOptions     = ['cost' => 8];
+    protected array $hashFields      = ['password'];
+    protected string $hashAlgorithm   = PASSWORD_BCRYPT;
+    protected array $hashOptions     = ['cost' => 8];
 
     /*
      * int id

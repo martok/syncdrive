@@ -74,7 +74,7 @@ class Inodes extends \Pop\Db\Record
             $parentNode->contentChanged(save:true);
     }
 
-    public function save(array $columns = null)
+    public function save(array $columns = null): void
     {
         $dirty = $this->getDirty();
         $etagChanged = ($dirty['new']['etag'] ?? '') !== ($dirty['old']['etag'] ?? '');
