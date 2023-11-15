@@ -14,7 +14,8 @@
         "martok/nepf2": "dev-main",
         "popphp/pop-db": "@dev",
         "sabre/dav": "dev-master",
-        "elephox/mimey": "^4.0"
+        "elephox/mimey": "^4.0",
+        "ext-dom": "*"
     },
     "autoload": {
         "psr-4": {

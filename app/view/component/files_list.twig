@@ -20,7 +20,7 @@
     <button class="uk-button uk-button-default" id="upload" {{ 'C' not in exports.CURRENT_PERMISSIONS ? 'disabled' }}><i uk-icon="upload"></i>Upload</button>
     <button class="uk-button uk-button-default" id="newfolder" {{ 'K' not in exports.CURRENT_PERMISSIONS ? 'disabled' }}><i uk-icon="folder"></i>New</button>
     <button class="uk-button uk-button-default" id="file-paste" {{ 'C' not in exports.CURRENT_PERMISSIONS ? 'disabled' }}><i uk-icon="pull"></i>Paste<span></span></button>
-    <button class="uk-button uk-button-default" id="file-rename"><i uk-icon="pencil"></i>Rename</button>
+    <button class="uk-button uk-button-default" id="file-rename" disabled><i uk-icon="pencil"></i>Rename</button>
     <span id="selected-file-actions" class="toolbar-group"></span>
 </div>
 {% if 'C' in exports.CURRENT_PERMISSIONS or 'W' in exports.CURRENT_PERMISSIONS %}

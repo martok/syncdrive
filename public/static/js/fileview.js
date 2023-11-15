@@ -40,6 +40,7 @@ function hasPerms(perms) {
 			document.getElementById('file-rename')?.addEventListener('click', this.onToolbarRenameClick.bind(this));
 			window.addEventListener('storage', this.onStorageChanged.bind(this));
 			this.onStorageChanged();
+			this.onSelectionChanged();
 		}
 
 		updateToolbarForSelection(selected) {
