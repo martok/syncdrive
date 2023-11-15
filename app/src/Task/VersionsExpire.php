@@ -3,9 +3,9 @@
 namespace App\Task;
 
 use App\Dav\Context;
-use App\Dav\File;
+use App\Dav\FS\File;
+use App\Dav\FS\Node;
 use App\Dav\Identity;
-use App\Dav\Node;
 use App\Model\FileVersions;
 use App\Model\Inodes;
 use App\Model\Users;

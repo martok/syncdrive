@@ -2,6 +2,9 @@
 
 namespace App\Dav;
 
+use App\Dav\FS\Directory;
+use App\Dav\FS\Node;
+use App\Dav\FS\VirtualRoot;
 use App\Model\Inodes;
 use App\ObjectStorage\IStorageBackend;
 use App\ObjectStorage\ObjectStorage;

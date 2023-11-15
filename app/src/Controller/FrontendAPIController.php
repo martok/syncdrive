@@ -2,13 +2,12 @@
 
 namespace App\Controller;
 
-use App\Browser\BrowserViewBase;
 use App\Browser\PresentationBase;
 use App\Dav\Context;
-use App\Dav\Directory;
-use App\Dav\File;
+use App\Dav\FS\Directory;
+use App\Dav\FS\File;
+use App\Dav\FS\Node;
 use App\Dav\Identity;
-use App\Dav\Node;
 use App\Dav\NodeResolver;
 use App\Dav\Perm;
 use App\Dav\PermSet;

@@ -1,7 +1,10 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\FS;
 
+use App\Dav\IIndexableCollection;
+use App\Dav\NodeResolver;
+use App\Dav\Perm;
 use App\Model\ChunkedUploadParts;
 use App\Model\ChunkedUploads;
 use App\Model\Inodes;

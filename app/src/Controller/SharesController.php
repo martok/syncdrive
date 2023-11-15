@@ -2,10 +2,9 @@
 
 namespace App\Controller;
 
-use App\Browser\BrowserViewBase;
 use App\Browser\PresentationBase;
 use App\Dav\Context;
-use App\Dav\File;
+use App\Dav\FS\File;
 use App\Dav\Identity;
 use App\Dav\IIndexableCollection;
 use App\Dav\NodeResolver;

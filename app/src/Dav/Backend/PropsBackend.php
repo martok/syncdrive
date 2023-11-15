@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\Backend;
 
+use App\Dav\FS\Node;
 use App\Model\InodeProps;
 use App\Model\Inodes;
 use Sabre\DAV\Browser\PropFindAll;

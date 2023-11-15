@@ -1,7 +1,12 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\FS;
 
+use App\Dav\Context;
+use App\Dav\IACLTarget;
+use App\Dav\IIndexableCollection;
+use App\Dav\Perm;
+use App\Dav\PermSet;
 use Sabre\DAV\SimpleCollection;
 
 class VirtualRoot extends SimpleCollection implements IIndexableCollection, IACLTarget

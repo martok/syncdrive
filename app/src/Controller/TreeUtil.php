@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
-use App\Dav\File;
+use App\Dav\Backend\LocksBackend;
+use App\Dav\Backend\PropsBackend;
+use App\Dav\Backend\ServerAdapter;
+use App\Dav\FS\File;
 use App\Dav\IIndexableCollection;
-use App\Dav\LocksBackend;
-use App\Dav\PropsBackend;
-use App\Dav\ServerAdapter;
 use Nepf2\Request;
 use Sabre\DAV;
 

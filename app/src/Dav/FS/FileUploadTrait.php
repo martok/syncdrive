@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\FS;
 
 use App\Model\Inodes;
 use App\ObjectStorage\ObjectInfo;

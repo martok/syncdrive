@@ -2,6 +2,7 @@
 
 namespace App\Dav;
 
+use App\Dav\FS\Node;
 use App\Model\Inodes;
 use App\Model\InodeShares;
 use App\Model\Users;

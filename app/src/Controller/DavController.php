@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
+use App\Dav\Backend\ServerAdapter;
 use App\Dav\Context;
 use App\Dav\Identity;
-use App\Dav\ServerAdapter;
 use App\Model\InodeShares;
 use Nepf2\Auto;
 use Nepf2\Request;

@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\Backend;
 
+use App\Dav\FS\Directory;
+use App\Dav\NodeResolver;
 use App\Model\InodeLocks;
 use Sabre\DAV\Locks\Backend\AbstractBackend;
 use Sabre\DAV\Locks\LockInfo;

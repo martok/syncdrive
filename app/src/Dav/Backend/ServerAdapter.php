@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\Backend;
 
 use Sabre\DAV\Exception;
 use Sabre\DAV\Server;

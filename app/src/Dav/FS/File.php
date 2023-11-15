@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\FS;
 
+use App\Dav\NodeResolver;
+use App\Dav\Perm;
 use App\Model;
 use App\ObjectStorage\ObjectStorage;
 use Elephox\Mimey\MimeType;

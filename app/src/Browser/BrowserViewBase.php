@@ -4,12 +4,12 @@ namespace App\Browser;
 
 use App\Controller\Base;
 use App\Controller\TreeUtil;
+use App\Dav\Backend\ServerAdapter;
 use App\Dav\Context;
-use App\Dav\File;
+use App\Dav\FS\File;
+use App\Dav\FS\Node;
 use App\Dav\IIndexableCollection;
-use App\Dav\Node;
 use App\Dav\NodeResolver;
-use App\Dav\ServerAdapter;
 use App\Model\Inodes;
 use App\Model\InodeShares;
 use App\Model\Users;

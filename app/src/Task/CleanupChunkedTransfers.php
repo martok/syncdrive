@@ -4,10 +4,8 @@ namespace App\Task;
 
 use App\Dav\Context;
 use App\Dav\Identity;
-use App\Dav\Node;
 use App\Model\ChunkedUploadParts;
 use App\Model\ChunkedUploads;
-use App\Model\Inodes;
 use Nepf2\Application;
 
 class CleanupChunkedTransfers

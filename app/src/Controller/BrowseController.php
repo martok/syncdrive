@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Browser\BrowserMain;
 use App\Dav\Context;
-use App\Dav\File;
+use App\Dav\FS\File;
 use App\Dav\Identity;
 use App\Dav\IIndexableCollection;
 use Nepf2\Auto;

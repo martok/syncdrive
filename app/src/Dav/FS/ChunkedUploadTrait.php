@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Dav;
+namespace App\Dav\FS;
 
+use App\Dav\Perm;
 use App\Model\ChunkedUploads;
 use App\ObjectStorage\ObjectInfo;
 use Pop\Db\Record\Collection;
