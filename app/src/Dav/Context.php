@@ -54,14 +54,14 @@ class Context
                 if ($inode = Inodes::Find($share->inode_id)) {
                     $node = Node::FromInode($inode, $this);
                     if (!$node instanceof Directory)
-                        $node = new VirtualRoot('', [$node]);
+                        $node = new VirtualRoot($this, [$node]);
                     $node->inheritPerms($perm);
                     return new Tree($node);
                 }
                 /* fallthrough */
             case Identity::TYPE_UNAUTHENTICATED:
             default:
-                return new Tree(new VirtualRoot(''));
+                return new Tree(new VirtualRoot($this));
         }
     }
 

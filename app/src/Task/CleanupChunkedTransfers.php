@@ -13,7 +13,7 @@ use Nepf2\Application;
 class CleanupChunkedTransfers
 {
     public const DISPATCH_TIME = 24 * 3600;
-    public const MIN_AGE = 24 * 3600;
+    public const MIN_AGE = 6 * 3600;
 
     public function __construct(
         protected Application $app

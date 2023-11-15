@@ -10,6 +10,8 @@ use Sabre\DAV\IFile;
 
 class File extends Node implements IFile
 {
+    use FileUploadTrait;
+
     protected ?Model\FileVersions $boundVersion = null;
 
     /**
@@ -19,12 +21,11 @@ class File extends Node implements IFile
     {
         // follow permissions to shared inodes
         $this->requireInnerPerm(Perm::CAN_WRITE);
-        $object = $this->ctx->storage->storeNewObject($data);
+        $object = $this->storeUploadedData($data);
         Model\Inodes::db()->beginTransaction();
-        $inode = $this->getInode();
-        $inode->newVersion($object, $this->newItemOwner(true), $this->ctx->OCRequestMTime());
+        $etag = self::UpdateFile($this, $object);
         Model\Inodes::db()->commit();
-        return sprintf('"%s"', $inode->etag);
+        return $etag;
     }
 
     /**

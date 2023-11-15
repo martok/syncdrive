@@ -7,10 +7,12 @@ use Sabre\DAV\SimpleCollection;
 class VirtualRoot extends SimpleCollection implements IIndexableCollection, IACLTarget
 {
     private PermSet $effectivePermissions;
+    private Context $ctx;
 
-    public function __construct($name, array $children = [])
+    public function __construct(Context $context, array $children = [])
     {
-        parent::__construct($name, $children);
+        parent::__construct('', $children);
+        $this->ctx = $context;
         $this->effectivePermissions = new PermSet(Perm::DEFAULT_OWNED);
     }
 

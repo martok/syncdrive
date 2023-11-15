@@ -14,24 +14,8 @@ use Sabre\DAV\INode;
 
 class Directory extends Node implements ICollection, IIndexableCollection, IMoveTarget, ICopyTarget
 {
-
-    private function checkTransferredLength(int $received): bool
-    {
-        $req = $this->ctx->app->request();
-        if (!is_null($expect = $req->getHeader('content-length'))) {
-            return $received == (int)$expect;
-        }
-        return true;
-    }
-
-    private function saveNewFile(string $name, ObjectInfo $object): string
-    {
-        // create an incomplete file first, then update with new version
-        $inode = Inodes::New(Inodes::TYPE_FILE, $name, owner: $this->newItemOwner(false), parent: $this->getInodeId());
-        $inode->save();
-        $inode->newVersion($object, $this->newItemOwner(true), $this->ctx->OCRequestMTime());
-        return sprintf('"%s"', $inode->etag);
-    }
+    use FileUploadTrait;
+    use ChunkedUploadTrait;
 
     private function saveUploadChunk(ChunkedUploads $upload, int $partNo, ObjectInfo $object): void
     {
@@ -53,12 +37,9 @@ class Directory extends Node implements ICollection, IIndexableCollection, IMove
         if (!$this->ValidateFileName($name)) {
             throw new Exception\Forbidden('Invalid file name');
         }
-        $object = $this->ctx->storage->storeNewObject($data);
-        if (!$this->checkTransferredLength($object->size)) {
-            throw new Exception\BadRequest('Received data did not match content-length');
-        }
+        $object = $this->storeUploadedData($data);
         Inodes::db()->beginTransaction();
-        $etag = $this->saveNewFile($name, $object);
+        $etag = self::CreateFileIn($this, $name, $object);
         Inodes::db()->commit();
         return $etag;
     }
@@ -71,52 +52,16 @@ class Directory extends Node implements ICollection, IIndexableCollection, IMove
             throw new Exception\BadRequest('Invalid chunk file name');
         }
         // check if this is a PUT to an existing file
-        try {
-            $existingFile = $this->getChild($name);
-            $existingFile->requireInnerPerm(Perm::CAN_WRITE);
-        } catch (Exception\NotFound) {
-            $existingFile = null;
-            $this->requireInnerPerm(Perm::CAN_ADDFILE);
-            if (!$this->ValidateFileName($chunkInfo['name'])) {
-                throw new Exception\Forbidden('Invalid file name');
-            }
-        }
-        $object = $this->ctx->storage->storeNewObject($data);
-        if (!$this->checkTransferredLength($object->size)) {
-            throw new Exception\BadRequest('Received data did not match content-length');
-        }
+        $existingFile = $this->findTargetFile($chunkInfo['name']);
+        $object = $this->storeUploadedData($data);
         ChunkedUploads::db()->beginTransaction();
-        // find the existing transfer or create new record
-        $upload = ChunkedUploads::Find($chunkInfo['transfer']);
-        if (!$upload) {
-            $upload = ChunkedUploads::NewV1($chunkInfo['transfer'], $chunkInfo['count']);
-            $upload->save();
-        }
+        $upload = $this->findOrStartTransfer($chunkInfo['transfer'], partCount: $chunkInfo['count']);
         $this->saveUploadChunk($upload, $chunkInfo['part'], $object);
         ChunkedUploads::db()->commit();
 
         // transaction is closed, now check if we have all parts and if so, assemble
-        $parts = $upload->findParts();
-        if ($parts->count() == $upload->num_parts) {
-            $expectedSize = array_sum($parts->toArray(['column' => 'size']));
-            $partObjects = $parts->toArray(['column' => 'object']);
-            if (!($object = $this->ctx->storage->assembleObject($partObjects)) ||
-                ($object->size !== $expectedSize)) {
-                throw new Exception\BadRequest('Failed to assemble object from chunks');
-            }
-            // object is assembled, save file info
-            ChunkedUploads::db()->beginTransaction();
-            if ($existingFile) {
-                // this is actually a PUT on an existing file
-                $inode = $existingFile->getInode();
-                $inode->newVersion($object, $this->newItemOwner(true), $this->ctx->OCRequestMTime());
-                $etag = sprintf('"%s"', $inode->etag);
-            } else {
-                $etag = $this->saveNewFile($chunkInfo['name'], $object);
-            }
-            $upload->deleteWithObjects($this->ctx->storage);
-            ChunkedUploads::db()->commit();
-            return $etag;
+        if ($upload->countParts() == $upload->num_parts) {
+            return $this->moveChunkedToFile($upload, $existingFile, $chunkInfo['name']);
         }
         return null;
     }
@@ -166,7 +111,8 @@ class Directory extends Node implements ICollection, IIndexableCollection, IMove
             throw new Exception\BadRequest('Not a valid file name: '.$name);
         }
         if ($this->ctx->isChunkedV1Request() && ($info = ChunkedUploads::SplitV1Name($basename))) {
-            // required for If-Match checks must apply to the base file, not the decorated name
+            // Return the target node (if it exists) for chunked requests. This is required for If-Match checks
+            // to work correctly. The actual request handler uses Tree->nodeExists, which calls hasChildren().
             $basename = $info['name'];
         }
         $node = $this->getInode()->findChild($basename, $inode);

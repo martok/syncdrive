@@ -52,6 +52,11 @@ class ChunkedUploads extends \Pop\Db\Record
         return ChunkedUploadParts::findBy(['upload_id' => $this->id], ['order' => 'part ASC']);
     }
 
+    public function countParts(): int
+    {
+        return ChunkedUploadParts::getTotal(['upload_id' => $this->id]);
+    }
+
     public function deleteWithObjects(ObjectStorage $storage): void
     {
         // remove all associated parts and objects
