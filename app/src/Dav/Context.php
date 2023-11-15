@@ -41,6 +41,7 @@ class Context
 
         $this->storage = new ObjectStorage($backend);
         $this->storage->setChunkSize(ini_parse_quantity($storageCfg['chunkSize'] ?? '1M'));
+        $this->storage->setChecksumOCAlgos($storageCfg['checksums']);
     }
 
     private function createFilesView(): Tree

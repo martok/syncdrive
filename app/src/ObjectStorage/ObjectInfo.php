@@ -9,6 +9,7 @@ readonly class ObjectInfo
         public int $size,
         public string $hash,
         public int $chunkSize,
+        public array $checksums
     )
     {
     }

@@ -14,6 +14,7 @@ trait ChunkedUploadTrait
 
     private function findTargetFile(string $name): ?File
     {
+        // check if this is a PUT to an existing file
         try {
             $file = $this->getChild($name);
             $file->requireInnerPerm(Perm::CAN_WRITE);
@@ -57,6 +58,9 @@ trait ChunkedUploadTrait
     {
         // assemble object before starting transaction
         $object = $this->assembleChunkedUpload($upload->findParts());
+        if (!$this->checkTransferredChecksums($object->checksums)) {
+            throw new Exception\BadRequest('Received data did not match OC-Checksum');
+        }
         // object is assembled, save file info
         ChunkedUploads::db()->beginTransaction();
         if ($existingFile) {

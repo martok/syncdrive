@@ -2,6 +2,7 @@
 
 namespace App\ObjectStorage;
 
+use App\Dav\TransferChecksums;
 use App\Streams\Stream;
 use App\Exception;
 
@@ -9,11 +10,13 @@ class ObjectStorage
 {
     const EMPTY_OBJECT = '';
 
+    const OBJECT_HASH_ALG = 'sha256';
     const CHUNK_SIZE_DEFAULT = 64 << 20;
     const CHUNK_SIZE_MIN = 1 << 10;
 
     private IStorageBackend $backend;
     private int $chunkSize = self::CHUNK_SIZE_DEFAULT;
+    private array $checksumOCAlgos = [];
 
     public function __construct(IStorageBackend $backend)
     {
@@ -29,20 +32,31 @@ class ObjectStorage
         $this->chunkSize = $chunkSize;
     }
 
+    public function setChecksumOCAlgos(array $algos): void
+    {
+        $this->checksumOCAlgos = $algos;
+    }
+
     private function internalStore(callable $writeMethod): ObjectInfo
     {
         $writer = $this->backend->openTempWriter();
-        $hashWriter = new StreamObjectWriter($writer, $this->chunkSize);
+        $hashWriter = new StreamObjectWriter($writer, $this->chunkSize, array_merge([self::OBJECT_HASH_ALG],
+                                             TransferChecksums::OC2php($this->checksumOCAlgos)));
         $writeMethod($hashWriter);
         $size = ftell($hashWriter->getStream());
         fclose($hashWriter->getStream());
 
-        $info = new ObjectInfo(self::EMPTY_OBJECT, $size, $hashWriter->getHash(), $this->chunkSize);
+        $objectHash = $hashWriter->getHash();
+        $objectChecksums = [];
+        foreach ($this->checksumOCAlgos as $algo) {
+            $objectChecksums[$algo] = $hashWriter->getHash(TransferChecksums::OC2php($algo));
+        }
+        $info = new ObjectInfo(self::EMPTY_OBJECT, $size, $objectHash, $this->chunkSize, $objectChecksums);
         if ($size === 0) {
             $this->backend->removeTemporary($writer);
         } else {
             $persistentName = $this->generateObjectIdent($info);
-            $info = new ObjectInfo($persistentName, $size, $hashWriter->getHash(), $this->chunkSize);
+            $info = new ObjectInfo($persistentName, $size, $objectHash, $this->chunkSize, $objectChecksums);
             $this->backend->makePermanent($info, $writer);
         }
         return $info;

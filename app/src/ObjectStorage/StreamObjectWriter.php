@@ -2,35 +2,46 @@
 
 namespace App\ObjectStorage;
 
+use App\Exception;
 use App\Streams\CustomStream;
 use App\Streams\StreamProtocol;
 
 class StreamObjectWriter extends StreamProtocol
 {
-    public const HASH_ALG_DEFAULT = 'sha256';
-
     private IObjectWriter $writer;
     private int $chunkSize;
 
-    protected \HashContext $hash;
-    protected ?string $hashValue = null;
+    protected array $hashes = [];
 
     private ?CustomStream $stream;
     protected int $totalSize = 0;
     private ?int $chunkIndex = null;
     private int $chunkUsed = 0;
 
-    public function __construct(IObjectWriter $writer, int $chunkSize, string $hashAlgo = self::HASH_ALG_DEFAULT)
+    public function __construct(IObjectWriter $writer, int $chunkSize, array $hashAlgos)
     {
         $this->writer = $writer;
         $this->chunkSize = $chunkSize;
-        $this->hash = hash_init($hashAlgo, 0, '');
+        $allowed = hash_algos();
+        foreach ($hashAlgos as $alg) {
+            try {
+                $this->hashes[$alg] = hash_init($alg, 0, '');
+            } catch (\ValueError) {
+                throw new Exception("Invalid hash function: $alg");
+            }
+        }
         $this->stream = CustomStream::OpenWrapped('w', $this);
     }
 
-    public function getHash(): ?string
+    public function getHash(?string $alg = null): ?string
     {
-        return $this->hashValue;
+        if (!count($this->hashes))
+            return null;
+        $alg ??= array_key_first($this->hashes);
+        $val = $this->hashes[$alg] ?? null;
+        if (is_string($val))
+            return $val;
+        return null;
     }
 
     /**
@@ -43,7 +54,8 @@ class StreamObjectWriter extends StreamProtocol
 
     public function stream_close(): void
     {
-        $this->hashValue = hash_final($this->hash, false);
+        foreach (array_keys($this->hashes) as $alg)
+            $this->hashes[$alg] = hash_final($this->hashes[$alg], false);
         $this->stream = null;
     }
 
@@ -64,7 +76,8 @@ class StreamObjectWriter extends StreamProtocol
             $start += $written;
             $this->chunkUsed += $written;
         }
-        hash_update($this->hash, $data);
+        foreach ($this->hashes as $hash)
+            hash_update($hash, $data);
         $this->totalSize += $start;
         return $start;
     }

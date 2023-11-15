@@ -2,6 +2,7 @@
 
 namespace App\Dav\FS;
 
+use App\Dav\TransferChecksums;
 use App\Model\Inodes;
 use App\ObjectStorage\ObjectInfo;
 use Sabre\DAV\Exception;
@@ -17,11 +18,28 @@ trait FileUploadTrait
         return true;
     }
 
-    private function storeUploadedData(mixed $data, bool $throwOnLength=true): ObjectInfo
+    private function checkTransferredChecksums(array $checksums): bool
+    {
+        $req = $this->ctx->app->request();
+        if (!is_null($expect = $req->getHeader('OC-Checksum'))) {
+            // If the type of the checksum is not understood or supported by the client or by the
+            // server then the checksum should be ignored.
+            if (TransferChecksums::SplitHeader($expect, $alg, $hash) &&
+                isset($checksums[$alg])) {
+                return 0 == strcasecmp($checksums[$alg], $hash);
+            }
+        }
+        return true;
+    }
+
+    private function storeUploadedData(mixed $data, bool $checkLength = true, bool $checkChecksum = true): ObjectInfo
     {
         $object = $this->ctx->storage->storeNewObject($data);
-        if ($throwOnLength && !$this->checkTransferredLength($object->size)) {
+        if ($checkLength && !$this->checkTransferredLength($object->size)) {
             throw new Exception\BadRequest('Received data did not match content-length');
+        }
+        if ($checkChecksum && !$this->checkTransferredChecksums($object->checksums)) {
+            throw new Exception\BadRequest('Received data did not match OC-Checksum');
         }
         return $object;
     }

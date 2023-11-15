@@ -5,6 +5,7 @@ namespace App\ObjectStorage\FileBackend;
 use App\ObjectStorage\IObjectWriter;
 use App\ObjectStorage\IStorageBackend;
 use App\ObjectStorage\ObjectInfo;
+use App\ObjectStorage\ObjectStorage;
 use App\ObjectStorage\StreamObjectWriter;
 use App\Streams\CustomStream;
 use Nepf2\Application;
@@ -108,7 +109,7 @@ class FileBackend implements IStorageBackend
     public function getTemporaryName(): string
     {
         $seed = date('r') . microtime();
-        return 'tmp_' . hash(StreamObjectWriter::HASH_ALG_DEFAULT, $seed);
+        return 'tmp_' . hash(ObjectStorage::OBJECT_HASH_ALG, $seed);
     }
 
     public function makeParentDirs(string $file): void

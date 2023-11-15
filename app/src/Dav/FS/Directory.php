@@ -54,9 +54,8 @@ class Directory extends Node implements ICollection, IIndexableCollection, IMove
             ($chunkInfo['part'] >= $chunkInfo['count'])) {
             throw new Exception\BadRequest('Invalid chunk file name');
         }
-        // check if this is a PUT to an existing file
         $existingFile = $this->findTargetFile($chunkInfo['name']);
-        $object = $this->storeUploadedData($data);
+        $object = $this->storeUploadedData($data, checkChecksum: false);
         ChunkedUploads::db()->beginTransaction();
         $upload = $this->findOrStartTransfer($chunkInfo['transfer'], partCount: $chunkInfo['count']);
         $this->saveUploadChunk($upload, $chunkInfo['part'], $object);

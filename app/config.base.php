@@ -12,6 +12,7 @@ return [
 		'password' => '',
 	],
     'storage' => [
+        'checksums' => ['SHA1'],
         'class' => 'App\ObjectStorage\FileBackend\FileBackend',
         'chunkSize' => '64M',
         'path' => 'data/blob',

@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Dav\Identity;
+use App\Dav\TransferChecksums;
 use App\Model\AppPasswords;
 use App\Model\LoginTokens;
+use App\ObjectStorage\ObjectStorage;
 use Nepf2\Auto;
 use Nepf2\Request;
 use Nepf2\Response;
@@ -50,6 +52,7 @@ class NextcloudController extends Base
     public function capabilities(Response $res, Request $req)
     {
         $v = explode('.', self::IDENT_NC[1]);
+        $checksums = $this->app->cfg('storage.checksums');
 
         $res->setJSON($this->wrapOCS([
             'version' => [
@@ -98,8 +101,8 @@ class NextcloudController extends Base
                     'upload_files_drop' => false,
                 ],
                 'checksums' => [
-                    'supportedTypes' => ['SHA1', 'MD5'],
-                    'preferredUploadType' => 'SHA1',
+                    'supportedTypes' => $checksums,
+                    'preferredUploadType' => count($checksums) ? $checksums[0] : '',
                 ],
             ],
         ]));
