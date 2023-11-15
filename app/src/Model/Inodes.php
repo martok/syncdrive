@@ -145,19 +145,21 @@ class Inodes extends \Pop\Db\Record
         switch ($this->type) {
             case self::TYPE_COLLECTION:
                 // for folders, etag is derived from the set of non-deleted children
-                // use the stored etag to avoid cascading queries
-                $children = Inodes::findBy(['parent_id' => $this->id, 'deleted' => null])->toArray(['column' => 'etag']);
-                // sort to ensure consistent results
+                // assumes the child etag has already been updated and saved (bubble up)
+                $children = [];
+                foreach(Inodes::findBy(['parent_id' => $this->id, 'deleted' => null]) as $child) {
+                    $children[] = sprintf('%s:%s', $child->etag, (string)$child->name);
+                }
                 sort($children);
-                return sha1(sprintf('%d::%s', $this->id, implode("::", $children)));
+                return sha1(sprintf('%d:%s', $this->id, implode(':', $children)));
             case self::TYPE_FILE:
                 // for files, etag is derived from the storage object
                 $current = $this->getCurrentVersion();
-                return sha1(sprintf('%d::%d::%s', $this->id, $current->size, $current->object_id));
+                return sha1(sprintf('%d:%d:%s', $this->id, $current->size, $current->object_id));
             case self::TYPE_INTERNAL_SHARE:
-                // shared objects have the same etag as their targets
-                $linkTarget = $this->getLinkInfo()['target'];
-                return $linkTarget->etag;
+                // shared objects change etag with their targets and with changes to permissions
+                $li = $this->getLinkInfo();
+                return sha1(sprintf('%s:%s', $li['target']->etag, $li['permissions']));
         }
         throw new Exception("Unknown inode type: $this->type");
     }

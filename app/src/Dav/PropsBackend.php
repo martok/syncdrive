@@ -89,8 +89,13 @@ class PropsBackend implements \Sabre\DAV\PropertyStorage\Backend\BackendInterfac
             }
             return null;
         });
-        $propFind->handle('{http://owncloud.org/ns}id', function() use ($path) {
-            // ID is not useful to us at all
+        $propFind->handle('{http://owncloud.org/ns}id', function() use ($node, $path) {
+            // FileId should remain the same when a file is moved and be completely unique otherwise
+            // The client uses this to detect if a move occurred on the server to replay the same move
+            // locally iff the etag is still the same => use inode id but ignore version, as that changes etag as well.
+            if ($node instanceof Node) {
+                return $node->getInodeId();
+            }
             return md5($path);
         });
 

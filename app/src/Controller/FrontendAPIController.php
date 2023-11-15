@@ -527,6 +527,10 @@ class FrontendAPIController extends Base
         if ($share->isDirty()) {
             $share->modified = time();
             $share->save();
+            // update the etags of all nodes pointing to share
+            foreach(InodeShares::FindInodes($share->id) as $inode) {
+                $inode->contentChanged(save: true);
+            }
         }
     }
 
