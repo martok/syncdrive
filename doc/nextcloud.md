@@ -8,6 +8,8 @@ http://dav.localhost:8000
 
 * [KaraDAV doc](https://github.com/kd2org/karadav/blob/main/doc/NEXTCLOUD.md)
 * [KD2 Nextcloud](https://github.com/kd2org/karadav/blob/main/lib/KD2/WebDAV/NextCloud.php)
+* [Protocol (Cernbox)](https://github.com/cernbox/smashbox/blob/master/protocol/protocol.md)
+* [Chunking (Cernbox)](https://github.com/cernbox/smashbox/blob/master/protocol/chunking.md)
 
 ### Login flow
 

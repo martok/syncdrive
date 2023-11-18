@@ -3,6 +3,7 @@
 namespace App\Model;
 
 use App\Dav\PermSet;
+use App\Dav\TransferChecksums;
 use App\Exception;
 use App\ObjectStorage\ObjectInfo;
 
@@ -215,6 +216,10 @@ class Inodes extends \Pop\Db\Record
     {
         // create file version for the incoming data
         $version = FileVersions::New($this, $object->size, $object->object, $creator);
+        if ($csstr = TransferChecksums::Serialize($object->checksums)) {
+            // truncate to database field length
+            $version->hashes = substr($csstr, 0, 255);
+        }
         $version->save();
         // reflect change on self
         $this->current_version_id = $version->id;

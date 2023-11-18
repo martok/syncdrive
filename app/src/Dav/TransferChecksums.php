@@ -28,4 +28,40 @@ class TransferChecksums
         $hash = $s[1];
         return true;
     }
+
+    public static function Serialize(array $checksums): string
+    {
+        $result = '';
+        foreach ($checksums as $alg => $value) {
+            $result .= sprintf("%s:%s\n", $alg, $value);
+        }
+        return $result;
+    }
+
+    public static function Unserialize(string $hashes): ?array
+    {
+        $lines = explode("\n", $hashes);
+        // the last line is either empty (good data) or truncated before the linebreak (truncated field)
+        array_pop($lines);
+
+        $result = [];
+        foreach ($lines as $line) {
+            if (2 !== count($kv = explode(':', $line)))
+                continue;
+            $result[$kv[0]] = $kv[1];
+        }
+        if (count($result))
+            return $result;
+        return null;
+    }
+
+    public static function FormatDownloadHeader(array $hashes, array $preferredOrder): string
+    {
+        // return the first preferred hash, or the first of the array if not found, or the empty string if no hash is given
+        foreach([...$preferredOrder, array_key_first($hashes)] as $alg) {
+            if (isset($hashes[$alg]))
+                return sprintf('%s:%s', $alg, $hashes[$alg]);
+        }
+        return '';
+    }
 }

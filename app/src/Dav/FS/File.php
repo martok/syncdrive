@@ -4,6 +4,7 @@ namespace App\Dav\FS;
 
 use App\Dav\NodeResolver;
 use App\Dav\Perm;
+use App\Dav\TransferChecksums;
 use App\Model;
 use App\ObjectStorage\ObjectStorage;
 use Elephox\Mimey\MimeType;
@@ -43,6 +44,11 @@ class File extends Node implements IFile
         $stream = $this->ctx->storage->openReader($object);
         if (!is_resource($stream))
             throw new Exception\NotFound('File data not found');
+        if (!is_null($csstr = $this->boundVersion->hashes) &&
+            ($hashes = TransferChecksums::Unserialize($csstr)) &&
+            ($header = TransferChecksums::FormatDownloadHeader($hashes, $this->ctx->app->cfg('storage.checksums')))) {
+            $this->ctx->app->response()->setHeader('OC-Checksum', $header);
+        }
         return $stream;
     }
 

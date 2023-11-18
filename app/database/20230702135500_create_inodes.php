@@ -29,6 +29,7 @@ class CreateInodes extends AbstractMigration
             ->int('size', 16)
             ->varchar('object', 255)
             ->varchar('name', 255)->nullable()
+            ->varchar('hashes', 255)->nullable()
             ->primary('id')
             ->index('inode_id', 'versions_for_inode');
 
