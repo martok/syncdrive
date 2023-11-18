@@ -24,7 +24,7 @@ class File extends Node implements IFile
     {
         // follow permissions to shared inodes
         $this->requireInnerPerm(Perm::CAN_WRITE);
-        $object = $this->storeUploadedData($data);
+        $object = $this->ctx->storeUploadedData($data);
         Model\Inodes::db()->beginTransaction();
         $etag = self::UpdateFile($this, $object);
         Model\Inodes::db()->commit();

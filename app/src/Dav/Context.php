@@ -7,6 +7,7 @@ use App\Dav\FS\Node;
 use App\Dav\FS\VirtualRoot;
 use App\Model\Inodes;
 use App\ObjectStorage\IStorageBackend;
+use App\ObjectStorage\ObjectInfo;
 use App\ObjectStorage\ObjectStorage;
 use Nepf2\Application;
 use Nepf2\Util\ClassUtil;
@@ -113,6 +114,16 @@ class Context
         return $effectivePermissions;
     }
 
+    public function forceDownloadResponse(): bool
+    {
+        $req = $this->app->request();
+        if ($req->int('dl') === 1)
+            return true;
+        if ($req->int('raw') === 1)
+            return false;
+        return true;
+    }
+
     public function isChunkedV1Request(): bool
     {
         return !is_null($this->app->request()->getHeader('OC-Chunked'));
@@ -124,13 +135,38 @@ class Context
         return is_null($ts) ? null : (int)$ts;
     }
 
-    public function forceDownloadResponse(): bool
+    private function checkTransferredLength(int $received): bool
     {
         $req = $this->app->request();
-        if ($req->int('dl') === 1)
-            return true;
-        if ($req->int('raw') === 1)
-            return false;
+        if (!is_null($expect = $req->getHeader('content-length'))) {
+            return $received == (int)$expect;
+        }
         return true;
+    }
+
+    public function checkTransferredChecksums(array $checksums): bool
+    {
+        $req = $this->app->request();
+        if (!is_null($expect = $req->getHeader('OC-Checksum'))) {
+            // If the type of the checksum is not understood or supported by the client or by the
+            // server then the checksum should be ignored.
+            if (TransferChecksums::SplitHeader($expect, $alg, $hash) &&
+                isset($checksums[$alg])) {
+                return 0 == strcasecmp($checksums[$alg], $hash);
+            }
+        }
+        return true;
+    }
+
+    public function storeUploadedData(mixed $data, bool $checkLength = true, bool $checkChecksum = true): ObjectInfo
+    {
+        $object = $this->storage->storeNewObject($data);
+        if ($checkLength && !$this->checkTransferredLength($object->size)) {
+            throw new Exception\BadRequest('Received data did not match content-length');
+        }
+        if ($checkChecksum && !$this->checkTransferredChecksums($object->checksums)) {
+            throw new Exception\BadRequest('Received data did not match OC-Checksum');
+        }
+        return $object;
     }
 }

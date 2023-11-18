@@ -2,7 +2,9 @@
 
 namespace App\Model;
 
+use App\ObjectStorage\ObjectInfo;
 use App\ObjectStorage\ObjectStorage;
+use Sabre\DAV\Exception;
 use Pop\Db\Record\Collection;
 
 class ChunkedUploads extends \Pop\Db\Record
@@ -15,14 +17,6 @@ class ChunkedUploads extends \Pop\Db\Record
      * int/null num_parts
      * int/nul total_length
      */
-
-    public static function Find(string $transferId): ?self
-    {
-        if (($upload = self::findOne(['transfer_id' => $transferId])) &&
-            !is_null($upload->id))
-            return $upload;
-        return null;
-    }
 
     public static function SplitV1Name(string $name): ?array
     {
@@ -38,6 +32,14 @@ class ChunkedUploads extends \Pop\Db\Record
         return null;
     }
 
+    public static function Find(string $transferId): ?self
+    {
+        if (($upload = self::findOne(['transfer_id' => $transferId])) &&
+            !is_null($upload->id))
+            return $upload;
+        return null;
+    }
+
     public static function NewV1(int $transfer, int $count): static
     {
         return new static([
@@ -45,6 +47,20 @@ class ChunkedUploads extends \Pop\Db\Record
             'started' => time(),
             'num_parts' => $count,
         ]);
+    }
+
+    public static function FindOrStartTransfer(string $transferid, ?int $partCount = null): static
+    {
+        // find the existing transfer or create new record
+        $upload = static::Find($transferid);
+        if (!$upload) {
+            if (!is_null($partCount)) {
+                $upload = static::NewV1($transferid, $partCount);
+                $upload->save();
+            } else
+                throw new Exception\BadRequest('Chunked upload version not recognized');
+        }
+        return $upload;
     }
 
     public function findParts(): Collection
@@ -55,6 +71,33 @@ class ChunkedUploads extends \Pop\Db\Record
     public function countParts(): int
     {
         return ChunkedUploadParts::getTotal(['upload_id' => $this->id]);
+    }
+
+    public function saveChunk(int $partNo, ObjectInfo $object, ObjectStorage $storage): ChunkedUploadParts
+    {
+        // if we already had data for that part, replace it
+        $part = ChunkedUploadParts::findOne(['upload_id' => $this->id, 'part' => $partNo]);
+        if (!is_null($part->object)) {
+            $storage->removeObject($part->object);
+            $part->object = $object->object;
+            $part->size = $object->size;
+        } else {
+            $part = ChunkedUploadParts::New($this, $partNo, $object);
+        }
+        $part->save();
+        return $part;
+    }
+
+    public function assemble(ObjectStorage $storage): ObjectInfo
+    {
+        $parts = $this->findParts();
+        $expectedSize = array_sum($parts->toArray(['column' => 'size']));
+        $partObjects = $parts->toArray(['column' => 'object']);
+        if (!($object = $storage->assembleObject($partObjects)) ||
+            ($object->size !== $expectedSize)) {
+            throw new Exception\BadRequest('Failed to assemble object from chunks');
+        }
+        return $object;
     }
 
     public function deleteWithObjects(ObjectStorage $storage): void

@@ -9,41 +9,6 @@ use Sabre\DAV\Exception;
 
 trait FileUploadTrait
 {
-    private function checkTransferredLength(int $received): bool
-    {
-        $req = $this->ctx->app->request();
-        if (!is_null($expect = $req->getHeader('content-length'))) {
-            return $received == (int)$expect;
-        }
-        return true;
-    }
-
-    private function checkTransferredChecksums(array $checksums): bool
-    {
-        $req = $this->ctx->app->request();
-        if (!is_null($expect = $req->getHeader('OC-Checksum'))) {
-            // If the type of the checksum is not understood or supported by the client or by the
-            // server then the checksum should be ignored.
-            if (TransferChecksums::SplitHeader($expect, $alg, $hash) &&
-                isset($checksums[$alg])) {
-                return 0 == strcasecmp($checksums[$alg], $hash);
-            }
-        }
-        return true;
-    }
-
-    private function storeUploadedData(mixed $data, bool $checkLength = true, bool $checkChecksum = true): ObjectInfo
-    {
-        $object = $this->ctx->storage->storeNewObject($data);
-        if ($checkLength && !$this->checkTransferredLength($object->size)) {
-            throw new Exception\BadRequest('Received data did not match content-length');
-        }
-        if ($checkChecksum && !$this->checkTransferredChecksums($object->checksums)) {
-            throw new Exception\BadRequest('Received data did not match OC-Checksum');
-        }
-        return $object;
-    }
-
     private static function UpdateFile(File $file, ObjectInfo $content): string
     {
         $inode = $file->getInode();

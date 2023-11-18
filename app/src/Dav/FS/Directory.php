@@ -20,52 +20,17 @@ class Directory extends Node implements ICollection, IIndexableCollection, IMove
     use FileUploadTrait;
     use ChunkedUploadTrait;
 
-    private function saveUploadChunk(ChunkedUploads $upload, int $partNo, ObjectInfo $object): void
-    {
-        // if we already had data for that part, replace it
-        $part = ChunkedUploadParts::findOne(['upload_id' => $upload->id, 'part' => $partNo]);
-        if (!is_null($part->object)) {
-            $this->ctx->storage->removeObject($part->object);
-            $part->object = $object->object;
-            $part->size = $object->size;
-        } else {
-            $part = ChunkedUploadParts::New($upload, $partNo, $object);
-        }
-        $part->save();
-    }
-
     public function createRegularFile(string $name, $data): ?string
     {
         $this->requireInnerPerm(Perm::CAN_ADDFILE);
         if (!$this->ValidateFileName($name)) {
             throw new Exception\Forbidden('Invalid file name');
         }
-        $object = $this->storeUploadedData($data);
+        $object = $this->ctx->storeUploadedData($data);
         Inodes::db()->beginTransaction();
         $etag = self::CreateFileIn($this, $name, $object);
         Inodes::db()->commit();
         return $etag;
-    }
-
-    public function createChunkedV1File(string $name, $data): ?string
-    {
-        $chunkInfo = ChunkedUploads::SplitV1Name($name);
-        if (is_null($chunkInfo) ||
-            ($chunkInfo['part'] >= $chunkInfo['count'])) {
-            throw new Exception\BadRequest('Invalid chunk file name');
-        }
-        $existingFile = $this->findTargetFile($chunkInfo['name']);
-        $object = $this->storeUploadedData($data, checkChecksum: false);
-        ChunkedUploads::db()->beginTransaction();
-        $upload = $this->findOrStartTransfer($chunkInfo['transfer'], partCount: $chunkInfo['count']);
-        $this->saveUploadChunk($upload, $chunkInfo['part'], $object);
-        ChunkedUploads::db()->commit();
-
-        // transaction is closed, now check if we have all parts and if so, assemble
-        if ($upload->countParts() == $upload->num_parts) {
-            return $this->moveChunkedToFile($upload, $existingFile, $chunkInfo['name']);
-        }
-        return null;
     }
 
     /**
