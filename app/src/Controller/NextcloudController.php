@@ -48,7 +48,8 @@ class NextcloudController extends Base
         ]);
     }
 
-    #[Auto\Route('/ocs/v2.php/cloud/capabilities', method:['GET'])]
+    #[Auto\Route('/ocs/v1.php/cloud/capabilities', method: 'GET')]
+    #[Auto\Route('/ocs/v2.php/cloud/capabilities', method: 'GET')]
     public function capabilities(Response $res, Request $req)
     {
         $v = explode('.', self::IDENT_NC[1]);
