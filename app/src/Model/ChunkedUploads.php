@@ -49,16 +49,27 @@ class ChunkedUploads extends \Pop\Db\Record
         ]);
     }
 
-    public static function FindOrStartTransfer(string $transferid, ?int $partCount = null): static
+    public static function NewV2(int $transfer, int $totalLength): static
+    {
+        return new static([
+            'transfer_id' => $transfer,
+            'started' => time(),
+            'total_length' => $totalLength,
+        ]);
+    }
+
+    public static function FindOrStartTransfer(string $transferid, ?int $partCount = null, ?int $totalLength = null): static
     {
         // find the existing transfer or create new record
         $upload = static::Find($transferid);
         if (!$upload) {
             if (!is_null($partCount)) {
                 $upload = static::NewV1($transferid, $partCount);
-                $upload->save();
+            } elseif (!is_null($totalLength)) {
+                $upload = static::NewV2($transferid, $totalLength);
             } else
                 throw new Exception\BadRequest('Chunked upload version not recognized');
+            $upload->save();
         }
         return $upload;
     }

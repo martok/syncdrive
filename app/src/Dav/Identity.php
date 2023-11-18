@@ -82,12 +82,12 @@ class Identity
         return false;
     }
 
-    public function initApp(Request $request, Response $response): bool
+    public function initApp(Request $request, Response $response, ?string $urlLogin = null): bool
     {
         $basic = new Auth\Basic($this->realm, $request, $response);
         if ($cred = $basic->getCredentials()) {
             [$login, $pass] = $cred;
-            if (($user = $this->checkLoginApp($login, null, $pass))) {
+            if (($user = $this->checkLoginApp($login, $urlLogin, $pass))) {
                 $this->type = self::TYPE_USER;
                 $this->user = $user;
                 return true;

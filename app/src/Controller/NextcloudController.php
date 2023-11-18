@@ -2,15 +2,22 @@
 
 namespace App\Controller;
 
+use App\Dav\Backend\ServerAdapter;
+use App\Dav\Context;
+use App\Dav\FS\Directory;
+use App\Dav\FS\VirtualFilePart;
+use App\Dav\FS\VirtualRoot;
 use App\Dav\Identity;
-use App\Dav\TransferChecksums;
 use App\Model\AppPasswords;
+use App\Model\ChunkedUploads;
 use App\Model\LoginTokens;
-use App\ObjectStorage\ObjectStorage;
 use Nepf2\Auto;
 use Nepf2\Request;
 use Nepf2\Response;
 use Nepf2\Util\Random;
+use Sabre\DAV\Exception;
+use Sabre\DAV\Tree;
+use Sabre\Uri;
 
 class NextcloudController extends Base
 {
@@ -70,12 +77,11 @@ class NextcloudController extends Base
                     'pollinterval' => 60,
                     'bruteforce' => ['delay' => 0],
                 ],
-                /*'dav' => [
-                    // TODO
+                'dav' => [
                     // NG chunking: https://github.com/cernbox/smashbox/blob/master/protocol/chunking.md
                     // "1.0" means "NG" actually... lol: https://github.com/owncloud/client/issues/7862#issuecomment-717953394
                     'chunking' => '1.0',
-                ],*/
+                ],
                 'files' => [
                     // old v1 chunking: https://github.com/cernbox/smashbox/blob/master/protocol/protocol.md#chunked-file-upload
                     'bigfilechunking' => true,
@@ -206,5 +212,179 @@ class NextcloudController extends Base
             'display-name' => $identity->user->username,
             'email' => $identity->user->username,
         ]));
+    }
+
+    #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>', method: 'MKCOL')]
+    public function chunkingInitiate(Response $res, Request $req, string $login, string $transfer)
+    {
+        $identity = new Identity($this->app->cfg('site.title'));
+        if (!$identity->initApp($req, $res, $login)) {
+            $res->setStatus(403);
+            return;
+        }
+        $context = new Context($this->app, $identity);
+        $server = new ServerAdapter(new Tree(new VirtualRoot($context)), $req, $res);
+        try {
+            if (!is_numeric($transfer)) {
+                throw new Exception\BadRequest('Invalid transfer id');
+            }
+            if (!is_numeric($totalLength = $req->getHeader('OC-Total-Length'))) {
+                throw new Exception\BadRequest('Missing final file size');
+            }
+            ChunkedUploads::db()->beginTransaction();
+            if (!is_null(ChunkedUploads::Find($transfer))) {
+                throw new Exception\BadRequest('Duplicate transfer id');
+            }
+            $upload = ChunkedUploads::FindOrStartTransfer($transfer, totalLength: $totalLength);
+            ChunkedUploads::db()->commit();
+            $res->setStatus(201);
+        } catch (Exception $e) {
+            $server->sendException($e);
+            return false;
+        }
+    }
+
+    #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>/<part>', method: 'PUT')]
+    public function chunkingPut(Response $res, Request $req, string $login, string $transfer, string $part)
+    {
+        $identity = new Identity($this->app->cfg('site.title'));
+        if (!$identity->initApp($req, $res, $login)) {
+            $res->setStatus(403);
+            return;
+        }
+        $context = new Context($this->app, $identity);
+        $server = new ServerAdapter(new Tree(new VirtualRoot($context)), $req, $res);
+        try {
+            $upload = ChunkedUploads::Find($transfer);
+            if (is_null($upload)) {
+                throw new Exception\BadRequest('Transfer not created');
+            }
+            if (!is_numeric($part)) {
+                throw new Exception\BadRequest('Invalid chunk number');
+            }
+            if (!is_numeric($length = $req->getHeader('Content-Length')) ||
+                !is_numeric($offset = $req->getHeader('OC-Chunk-Offset')) ||
+                (int)$offset + (int)$length > $upload->total_length) {
+                throw new Exception\BadRequest('Invalid chunk size');
+            }
+
+            $context->setupStorage();
+            $object = $context->storeUploadedData($req->getBodyAsStream());
+            ChunkedUploads::db()->beginTransaction();
+            $upload->saveChunk($part, $object, $context->storage);
+            ChunkedUploads::db()->commit();
+            $res->setStatus(201);
+        } catch (Exception $e) {
+            $server->sendException($e);
+            return false;
+        }
+    }
+
+    #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>', method: 'PROPFIND')]
+    public function chunkingEnumerate(Response $res, Request $req, string $login, string $transfer)
+    {
+        $identity = new Identity($this->app->cfg('site.title'));
+        if (!$identity->initApp($req, $res, $login)) {
+            $res->setStatus(403);
+            return;
+        }
+        $context = new Context($this->app, $identity);
+        $root = new VirtualRoot($context);
+        $server = new ServerAdapter(new Tree($root), $req, $res);
+        try {
+            $server->setBaseUri(TreeUtil::requestBaseUri($req, []));
+            $upload = ChunkedUploads::Find($transfer);
+            if (is_null($upload)) {
+                throw new Exception\BadRequest('Transfer not created');
+            }
+            foreach ($upload->findParts() as $part) {
+                $root->addChild(new VirtualFilePart($part));
+            }
+            $server->start();
+        } catch (Exception $e) {
+            $server->sendException($e);
+        }
+        return false;
+    }
+
+    #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>', method: 'DELETE')]
+    public function chunkingCancel(Response $res, Request $req, string $login, string $transfer)
+    {
+        $identity = new Identity($this->app->cfg('site.title'));
+        if (!$identity->initApp($req, $res, $login)) {
+            $res->setStatus(403);
+            return;
+        }
+        $context = new Context($this->app, $identity);
+        $server = new ServerAdapter(new Tree(new VirtualRoot($context)), $req, $res);
+        try {
+            $upload = ChunkedUploads::Find($transfer);
+            if (is_null($upload)) {
+                throw new Exception\BadRequest('Transfer not created');
+            }
+            $context->setupStorage();
+            ChunkedUploads::db()->beginTransaction();
+            $upload->deleteWithObjects($context->storage);
+            ChunkedUploads::db()->commit();
+        } catch (Exception $e) {
+            $server->sendException($e);
+            return false;
+        }
+    }
+
+    #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>/.file', method: 'MOVE')]
+    public function chunkingFinalize(Response $res, Request $req, string $login, string $transfer)
+    {
+        $identity = new Identity($this->app->cfg('site.title'));
+        if (!$identity->initApp($req, $res, $login)) {
+            $res->setStatus(403);
+            return;
+        }
+        $context = new Context($this->app, $identity);
+        $server = new ServerAdapter($context->getFilesView(), $req, $res);
+        try {
+            // set the base Uri for the destination
+            $server->setBaseUri(DavController::MakeUserPath($login, ''));
+            $upload = ChunkedUploads::Find($transfer);
+            if (is_null($upload)) {
+                throw new Exception\BadRequest('Transfer not created');
+            }
+            $totalLength = 0;
+            foreach ($upload->findParts() as $part) {
+                $totalLength += $part->size;
+            }
+            if (($totalLength != $upload->total_length) ||
+                (is_numeric($req->getHeader('OC-Total-Length')) &&
+                    ($totalLength != (int)$req->getHeader('OC-Total-Length')))) {
+                throw new Exception\BadRequest('Upload is not complete');
+            }
+
+            // locate the move target
+            $moveInfo = $server->getCopyAndMoveInfo($req);
+            if ($moveInfo['destinationNode'] && $req->getHeader('If')) {
+                // this should only take the 'getIfConditions' branch, therefore
+                // the 'invalid' path is irrelevant
+                $server->checkPreconditions($req, $res);
+            }
+
+            $destination = $server->calculateUri($req->getHeader('Destination'));
+            list($destinationDir) = Uri\split($destination);
+            $destinationParent = $server->tree->getNodeForPath($destinationDir);
+            assert($destinationParent instanceof Directory);
+
+            $context->setupStorage();
+            $etag = $destinationParent->moveChunkedToFile($upload, $moveInfo['destinationNode'] ?: null, $moveInfo['destination']);
+            if (!$etag) {
+                throw new Exception\Conflict('Failed to rename file');
+            }
+            $destinationNode = $destinationParent->getChild($moveInfo['destination']);
+            $res->setHeader('Content-Length', '0');
+            $res->setHeader('OC-Etag', $etag);
+            $res->setHeader('OC-FileId', $destinationNode->getInodeId());
+            $res->setStatus($moveInfo['destinationExists'] ? 204 : 201);
+        } catch (Exception $e) {
+            $server->sendException($e);
+            return false;
+        }
     }
 }

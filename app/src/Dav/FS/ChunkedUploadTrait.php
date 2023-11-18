@@ -4,8 +4,6 @@ namespace App\Dav\FS;
 
 use App\Dav\Perm;
 use App\Model\ChunkedUploads;
-use App\ObjectStorage\ObjectInfo;
-use Pop\Db\Record\Collection;
 use Sabre\DAV\Exception;
 
 /**
@@ -52,7 +50,7 @@ trait ChunkedUploadTrait
         }
     }
 
-    private function moveChunkedToFile(ChunkedUploads $upload, ?File $existingFile, string $newName): string
+    public function moveChunkedToFile(ChunkedUploads $upload, ?File $existingFile, string $newName): string
     {
         // assemble object before starting transaction
         $object = $upload->assemble($this->ctx->storage);

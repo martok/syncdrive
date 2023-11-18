@@ -23,6 +23,9 @@ class DavController extends Base
     //   - session (web)
     //   - auth:basic (user with file manager, app with sync client)
     const PREFIX_USER = '/remote.php/dav/files/';
+    // chunking v2 API, authenticated via:
+    //   - auth:basic (app with sync client)
+    const PREFIX_CHUNKING_V2 = '/remote.php/dav/uploads/';
     // share-based access, authenticated via:
     //   - session (web)
     //   - NOT password in POST (only SharesController::shareView handles that)

@@ -2,10 +2,8 @@
 
 namespace App\Dav\FS;
 
-use App\Dav\TransferChecksums;
 use App\Model\Inodes;
 use App\ObjectStorage\ObjectInfo;
-use Sabre\DAV\Exception;
 
 trait FileUploadTrait
 {
