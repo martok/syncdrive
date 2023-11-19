@@ -1,0 +1,42 @@
+{% extends "base/_frontend_container.twig" %}
+{% set view_title = "Authorized Apps" %}
+{% from "macros/general.twig" import timeago_element %}
+
+
+{% block app_tokens %}
+    <table class="uk-table uk-table-small uk-table-striped">
+        <thead>
+        <tr>
+            <th class="uk-width-1-5">Last Used</th>
+            <th>Application</th>
+            <th class="uk-width-1-6">Login token</th>
+            <th class="uk-width-1-5">Created</th>
+            <th class="uk-width-1-6"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for app in list %}
+            <tr>
+                <td>{{ timeago_element(app.lastUsed) }}</td>
+                <td>{{ app.userAgent }}</td>
+                <td>{{ app.login }}</td>
+                <td>{{ timeago_element(app.created) }}</td>
+                <td><a href="/user/apps/{{ app.login }}/{{ app.id }}/revoke"><i uk-icon="close"></i> Revoke</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block content_main %}
+    <h1>{{ view_title }}</h1>
+    {% if not list %}
+        <p>No items.</p>
+    {% else %}
+        {{ block('app_tokens') }}
+    {% endif %}
+
+    <script type="text/javascript" defer>
+        $('time').timeago();
+    </script>
+{% endblock %}

@@ -4,7 +4,7 @@
 
 
 {% block created_shares %}
-    <table class="uk-table uk-table-striped">
+    <table class="uk-table uk-table-small uk-table-striped">
         <thead>
         <tr>
             <th>Name</th>
@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block received_shares %}
-    <table class="uk-table uk-table-striped">
+    <table class="uk-table uk-table-small uk-table-striped">
         <thead>
         <tr>
             <th>Name</th>
@@ -44,7 +44,7 @@
 {% endblock %}
 
 {% block content_main %}
-    <h1>Shared Items</h1>
+    <h1>{{ view_title }}</h1>
 
     <h2>Shared by me</h2>
         {% if not created %}

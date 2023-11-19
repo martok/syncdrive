@@ -131,4 +131,44 @@ class UserController extends Base
         $res->redirect('/');
     }
 
+    #[Auto\Route('/apps', method: 'GET')]
+    public function appsList(Response $res, Request $req)
+    {
+        if (!$this->isLoggedIn()) {
+            $res->redirect('/');
+            return;
+        }
+        $userid = $this->session->userid;
+
+        $list = [];
+        foreach (Model\AppPasswords::findBy(['user_id' => $userid], ['order' => 'last_used DESC']) as $ap) {
+            $list[] = [
+                'id' => $ap->id,
+                'userAgent' => $ap->user_agent,
+                'created' => $ap->created,
+                'lastUsed' => $ap->last_used,
+                'login' => $ap->login_name,
+            ];
+        }
+
+        $view = $this->initTemplateView('user_app_tokens.twig');
+        $view->set('list', $list);
+        $res->setBody($view->render());
+    }
+
+    #[Auto\Route('/apps/<login>/<id>/revoke', method: 'GET')]
+    public function appsRevoke(Response $res, Request $req, string $login, int $id)
+    {
+        if (!$this->isLoggedIn()) {
+            $res->redirect('/');
+            return;
+        }
+        $userid = $this->session->userid;
+
+        $ap = Model\AppPasswords::findOne(['id' => $id, 'login_name' => $login, 'user_id' => $userid]);
+        if (!is_null($ap->id)) {
+            $ap->delete();
+        }
+        $res->redirect('/user/apps');
+    }
 }
