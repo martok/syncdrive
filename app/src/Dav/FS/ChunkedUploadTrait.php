@@ -28,7 +28,9 @@ trait ChunkedUploadTrait
 
         // transaction is closed, now check if we have all parts and if so, assemble
         if ($upload->countParts() == $upload->num_parts) {
-            return $this->moveChunkedToFile($upload, $existingFile, $chunkInfo['name']);
+            $etag = $this->moveChunkedToFile($upload, $existingFile, $chunkInfo['name']);
+            File::AddUploadHeaders($this->getChild($chunkInfo['name']));
+            return $etag;
         }
         return null;
     }

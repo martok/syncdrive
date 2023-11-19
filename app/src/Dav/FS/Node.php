@@ -283,6 +283,11 @@ class Node implements INode, IACLTarget
         return sprintf('"%s"', $this->getInode()->etag);
     }
 
+    public function getFileID(): string
+    {
+        return $this->getInodeId();
+    }
+
     public function isOwned(bool $followLinks = true): bool
     {
         return $this->ctx->identity->getUserId() === $this->getInode($followLinks)->owner_id;

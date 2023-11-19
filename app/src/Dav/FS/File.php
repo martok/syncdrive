@@ -28,6 +28,7 @@ class File extends Node implements IFile
         Model\Inodes::db()->beginTransaction();
         $etag = self::UpdateFile($this, $object);
         Model\Inodes::db()->commit();
+        self::AddUploadHeaders($this);
         return $etag;
     }
 

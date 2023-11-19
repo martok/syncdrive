@@ -23,4 +23,11 @@ trait FileUploadTrait
         return sprintf('"%s"', $inode->etag);
     }
 
+    public static function AddUploadHeaders(Node $file): void
+    {
+        $res = $file->ctx->app->response();
+        $res->setHeader('OC-FileID', $file->getFileID());
+        if ($file->ctx->OCRequestMTime())
+            $res->setHeader('X-OC-MTime', 'accepted');
+    }
 }

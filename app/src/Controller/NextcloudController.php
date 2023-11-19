@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Dav\Backend\ServerAdapter;
 use App\Dav\Context;
 use App\Dav\FS\Directory;
+use App\Dav\FS\File;
 use App\Dav\FS\VirtualFilePart;
 use App\Dav\FS\VirtualRoot;
 use App\Dav\Identity;
@@ -377,10 +378,9 @@ class NextcloudController extends Base
             if (!$etag) {
                 throw new Exception\Conflict('Failed to rename file');
             }
-            $destinationNode = $destinationParent->getChild($moveInfo['destination']);
+            File::AddUploadHeaders($destinationParent->getChild($moveInfo['destination']));
             $res->setHeader('Content-Length', '0');
             $res->setHeader('OC-Etag', $etag);
-            $res->setHeader('OC-FileId', $destinationNode->getInodeId());
             $res->setStatus($moveInfo['destinationExists'] ? 204 : 201);
         } catch (Exception $e) {
             $server->sendException($e);

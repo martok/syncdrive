@@ -95,7 +95,7 @@ class PropsBackend implements \Sabre\DAV\PropertyStorage\Backend\BackendInterfac
             // The client uses this to detect if a move occurred on the server to replay the same move
             // locally iff the etag is still the same => use inode id but ignore version, as that changes etag as well.
             if ($node instanceof Node) {
-                return $node->getInodeId();
+                return $node->getFileID();
             }
             return md5($path);
         });

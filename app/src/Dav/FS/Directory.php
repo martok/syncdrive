@@ -30,6 +30,7 @@ class Directory extends Node implements ICollection, IIndexableCollection, IMove
         Inodes::db()->beginTransaction();
         $etag = self::CreateFileIn($this, $name, $object);
         Inodes::db()->commit();
+        self::AddUploadHeaders($this->getChild($name));
         return $etag;
     }
 
