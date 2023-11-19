@@ -66,7 +66,7 @@ trait ChunkedUploadTrait
         } else {
             $etag = self::CreateFileIn($this, $newName, $object);
         }
-        $upload->deleteWithObjects($this->ctx->storage);
+        $upload->deleteWithParts($this->ctx->storage);
         ChunkedUploads::db()->commit();
         return $etag;
     }

@@ -396,7 +396,7 @@ class NextcloudController extends Base
             }
             $context->setupStorage();
             ChunkedUploads::db()->beginTransaction();
-            $upload->deleteWithObjects($context->storage);
+            $upload->deleteWithParts($context->storage);
             ChunkedUploads::db()->commit();
         } catch (Exception $e) {
             $server->sendException($e);

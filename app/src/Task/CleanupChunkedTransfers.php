@@ -44,7 +44,7 @@ class CleanupChunkedTransfers
         $context = new Context($this->app, Identity::System());
         $context->setupStorage();
         foreach ($orphans as $orphan) {
-            $context->storage->removeObject($orphan->object);
+            $context->storage->safeRemoveObject($orphan->object);
             $orphan->delete();
         }
     }

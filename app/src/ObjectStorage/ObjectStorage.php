@@ -3,8 +3,10 @@
 namespace App\ObjectStorage;
 
 use App\Dav\TransferChecksums;
-use App\Streams\Stream;
 use App\Exception;
+use App\Model\ChunkedUploadParts;
+use App\Model\FileVersions;
+use App\Streams\Stream;
 
 class ObjectStorage
 {
@@ -17,6 +19,12 @@ class ObjectStorage
     private IStorageBackend $backend;
     private int $chunkSize = self::CHUNK_SIZE_DEFAULT;
     private array $checksumOCAlgos = [];
+
+    public static function CountObjectUsers(string $object): int
+    {
+        return FileVersions::getTotal(['object' => $object]) +
+               ChunkedUploadParts::getTotal(['object' => $object]);
+    }
 
     public function __construct(IStorageBackend $backend)
     {
@@ -78,13 +86,15 @@ class ObjectStorage
     /**
      * Take the given objects and concatenated them into a new object.
      *
-     * @param array $sourceObjects array of object identifers
+     * @param string[] $sourceObjects array of object identifers
      * @return ObjectInfo The new object's metadata
      */
     public function assembleObject(array $sourceObjects): ObjectInfo
     {
         return $this->internalStore(function (StreamObjectWriter $hashWriter) use ($sourceObjects) {
             foreach ($sourceObjects as $source) {
+                if ($source === self::EMPTY_OBJECT)
+                    continue;
                 $reader = $this->openReader($source);
                 Stream::CopyToStream($reader, $hashWriter->getStream());
                 fclose($reader);
@@ -105,9 +115,20 @@ class ObjectStorage
         return $reader;
     }
 
-    public function removeObject(string $object): bool
+    /**
+     * Remove an object from the object storage, iff there is no or exactly one reference to it.
+     * This can be called before removing the last DB record pointing to it.
+     *
+     * Return false on error and true otherwise.
+     *
+     * @param string $object
+     * @return bool
+     */
+    public function safeRemoveObject(string $object): bool
     {
         if ($object === self::EMPTY_OBJECT)
+            return true;
+        if (self::CountObjectUsers($object) > 1)
             return true;
         return $this->backend->removeObject($object);
     }

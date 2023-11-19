@@ -187,10 +187,8 @@ class File extends Node implements IFile
         if ($version->inode_id !== $this->getInodeId())
             return false;
 
-        if (Model\FileVersions::CountObjectUsers($version->object) == 1) {
-            if (!$this->ctx->storage->removeObject($version->object))
-                return false;
-        }
+        if (!$this->ctx->storage->safeRemoveObject($version->object))
+            return false;
         $version->delete();
         return true;
     }

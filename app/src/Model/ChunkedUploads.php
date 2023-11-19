@@ -4,8 +4,8 @@ namespace App\Model;
 
 use App\ObjectStorage\ObjectInfo;
 use App\ObjectStorage\ObjectStorage;
-use Sabre\DAV\Exception;
 use Pop\Db\Record\Collection;
+use Sabre\DAV\Exception;
 
 class ChunkedUploads extends \Pop\Db\Record
 {
@@ -89,7 +89,7 @@ class ChunkedUploads extends \Pop\Db\Record
         // if we already had data for that part, replace it
         $part = ChunkedUploadParts::findOne(['upload_id' => $this->id, 'part' => $partIdent]);
         if (!is_null($part->object)) {
-            $storage->removeObject($part->object);
+            $storage->safeRemoveObject($part->object);
             $part->object = $object->object;
             $part->size = $object->size;
         } else {
@@ -111,11 +111,11 @@ class ChunkedUploads extends \Pop\Db\Record
         return $object;
     }
 
-    public function deleteWithObjects(ObjectStorage $storage): void
+    public function deleteWithParts(ObjectStorage $storage): void
     {
         // remove all associated parts and objects
         foreach ($this->findParts() as $part) {
-            $storage->removeObject($part->object);
+            $storage->safeRemoveObject($part->object);
             $part->delete();
         }
         $this->delete();

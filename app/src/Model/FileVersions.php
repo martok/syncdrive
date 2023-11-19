@@ -25,8 +25,4 @@ class FileVersions extends \Pop\Db\Record
         ]);
     }
 
-    public static function CountObjectUsers(string $object): int
-    {
-        return FileVersions::getTotal(['object' => $object]);
-    }
 }
