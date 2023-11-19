@@ -35,7 +35,7 @@ trait ChunkedUploadTrait
         return null;
     }
 
-    private function findTargetFile(string $name): ?File
+    public function findTargetFile(string $name): ?File
     {
         // check if this is a PUT to an existing file
         try {

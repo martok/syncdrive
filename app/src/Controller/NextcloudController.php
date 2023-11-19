@@ -415,8 +415,24 @@ class NextcloudController extends Base
         $context = new Context($this->app, $identity);
         $server = new ServerAdapter($context->getFilesView(), $req, $res);
         try {
-            // set the base Uri for the destination
+            // set the base Uri for the destination and locate the move target
             $server->setBaseUri(DavController::MakeUserPath($login, ''));
+            $moveInfo = $server->getCopyAndMoveInfo($req);
+            if ($moveInfo['destinationNode'] && $req->getHeader('If')) {
+                // this should only take the 'getIfConditions' branch, therefore
+                // the 'invalid' request path is irrelevant
+                $server->checkPreconditions($req, $res);
+            }
+            list($destinationDir, $destinationName) = Uri\split($moveInfo['destination']);
+            $destinationParent = $server->tree->getNodeForPath($destinationDir);
+            assert($destinationParent instanceof Directory);
+            // validate permissions and name
+            $destinationNode = $destinationParent->findTargetFile($destinationName);
+            if ($moveInfo['destinationExists'] && ($destinationNode != $moveInfo['destinationNode'])) {
+                throw new Exception\Conflict('Inconsistent tree state');
+            }
+
+            // locate and validate the transfer state
             $upload = ChunkedUploads::Find($transfer);
             if (is_null($upload)) {
                 throw new Exception\BadRequest('Transfer not created');
@@ -429,25 +445,13 @@ class NextcloudController extends Base
                 throw new Exception\BadRequest('Upload is not complete');
             }
 
-            // locate the move target
-            $moveInfo = $server->getCopyAndMoveInfo($req);
-            if ($moveInfo['destinationNode'] && $req->getHeader('If')) {
-                // this should only take the 'getIfConditions' branch, therefore
-                // the 'invalid' path is irrelevant
-                $server->checkPreconditions($req, $res);
-            }
-
-            $destination = $server->calculateUri($req->getHeader('Destination'));
-            list($destinationDir) = Uri\split($destination);
-            $destinationParent = $server->tree->getNodeForPath($destinationDir);
-            assert($destinationParent instanceof Directory);
-
+            // assemble it
             $context->setupStorage();
-            $etag = $destinationParent->moveChunkedToFile($upload, $moveInfo['destinationNode'] ?: null, $moveInfo['destination']);
+            $etag = $destinationParent->moveChunkedToFile($upload, $moveInfo['destinationNode'] ?: null, $destinationName);
             if (!$etag) {
                 throw new Exception\Conflict('Failed to rename file');
             }
-            File::AddUploadHeaders($destinationParent->getChild($moveInfo['destination']));
+            File::AddUploadHeaders($destinationParent->getChild($destinationName));
             $res->setHeader('Content-Length', '0');
             $res->setHeader('OC-Etag', $etag);
             $res->setStatus($moveInfo['destinationExists'] ? 204 : 201);
