@@ -18,7 +18,8 @@ class DavController extends Base
     const DAV_METHODS = ['GET', 'POST', 'PUT', 'MOVE', 'COPY', 'DELETE', 'MKCOL',
                          'LOCK', 'UNLOCK',
                          'HEAD', 'OPTIONS', 'PROPFIND', 'PROPPATCH'];
-    
+
+    const WEBDAV_ROOT = '/remote.php/dav';
     // user-based access, authenticated via:
     //   - session (web)
     //   - auth:basic (user with file manager, app with sync client)
@@ -35,6 +36,13 @@ class DavController extends Base
     public static function MakeUserPath(string|int $login, string $path)
     {
         return Path::Join(self::PREFIX_USER, (string)$login, $path);
+    }
+
+
+    #[Auto\Route(self::WEBDAV_ROOT, method: 'HEAD')]
+    public function androiddav(Response $res, Request $req)
+    {
+        // don't need to do anything, just respond
     }
 
     #[Auto\Route(self::PREFIX_USER . '<login>', method:self::DAV_METHODS)]

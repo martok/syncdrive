@@ -11,7 +11,7 @@ http://dav.localhost:8000
 * [Protocol (Cernbox)](https://github.com/cernbox/smashbox/blob/master/protocol/protocol.md)
 * [Chunking (Cernbox)](https://github.com/cernbox/smashbox/blob/master/protocol/chunking.md)
 
-### Login flow
+### Login flow - Desktop
 
 * `status.php`
 * `/ocs/v2.php/cloud/capabilities`
@@ -19,6 +19,15 @@ http://dav.localhost:8000
   * `/index.php/login/v2`
   * `/index.php/login/v2/flow/<loginToken>`
   * `/index.php/login/v2/poll`
+
+### Login flow - Android
+
+* `/ocs/v2.php/cloud/capabilities`
+* `remote.php/dav` (aka webdav-root from capabilities)
+* Login
+  * `/index.php/login/flow`
+  * (which we then redirect to v2 flow)
+  * Final URL: `nc://login/server:<server>&user:<urlencode(loginname)>&password:<urlencode(password)>`
 
 ### Post-Login-API
 

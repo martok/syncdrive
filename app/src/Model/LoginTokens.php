@@ -28,15 +28,20 @@ class LoginTokens extends \Pop\Db\Record
         self::execute($q, ['time' => time() - self::EXPIRATION_TIME]);
     }
 
-    public static function New(string $userAgent): static
+    public static function New(string $userAgent, int $version=2): static
     {
         $token = new static([
             'created' => time(),
             'user_agent' => $userAgent,
-            'poll_token' => Random::TokenStr(self::TOKEN_LEN_POLL),
+            'poll_token' => sprintf('v%d:%s', $version, Random::TokenStr(self::TOKEN_LEN_POLL)),
             'login_token' => Random::TokenStr(self::TOKEN_LEN_LOGIN),
         ]);
         $token->save();
         return $token;
+    }
+
+    public function isV1Token(): bool
+    {
+        return str_starts_with($this->poll_token, 'v1');
     }
 }

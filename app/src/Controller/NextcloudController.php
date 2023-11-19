@@ -15,6 +15,7 @@ use App\Model\LoginTokens;
 use Nepf2\Auto;
 use Nepf2\Request;
 use Nepf2\Response;
+use Nepf2\Util\Path;
 use Nepf2\Util\Random;
 use Sabre\DAV\Exception;
 use Sabre\DAV\Tree;
@@ -74,7 +75,7 @@ class NextcloudController extends Base
             ],
             'capabilities' => [
                 'core' => [
-                    'webdav-root' => 'remote.php/dav/',
+                    'webdav-root' => DavController::WEBDAV_ROOT,
                     'pollinterval' => 60,
                     'bruteforce' => ['delay' => 0],
                 ],
@@ -116,18 +117,33 @@ class NextcloudController extends Base
         ]));
     }
 
+    #[Auto\Route('/index.php/login/flow', method:['GET'])]
+    public function login_v1(Response $res, Request $req)
+    {
+        if (!$req->getHeader('OCS-APIREQUEST')) {
+            $res->standardResponse(400);
+            return;
+        }
+
+        LoginTokens::Expire();
+        list($loginBase) = Path::Pop($req->getAbsoluteUrl());
+        $token = LoginTokens::New($req->getHeader('User-Agent') ?? 'Unknown App', version: 1);
+        // redirect into login v2 flow, which will recognize v1 by the versioned poll_token
+        $res->redirect(implode('/', [$loginBase, 'v2', 'flow', $token->login_token]));
+    }
+
     #[Auto\Route('/index.php/login/v2', method:['POST'])]
     public function login_v2(Response $res, Request $req)
     {
         LoginTokens::Expire();
-        $loginBase = rtrim($req->getAbsoluteUrl(), '/');
+        list($loginBase) = Path::Pop($req->getAbsoluteUrl());
         $token = LoginTokens::New($req->getHeader('User-Agent') ?? 'Unknown App');
         $res->setJSON([
             'poll' => [
                 'token' => $token->poll_token,
                 'endpoint' => implode('/', [$loginBase , 'poll']),
             ],
-            'login' => implode('/', [$loginBase, 'flow', $token->login_token]),
+            'login' => implode('/', [$loginBase, 'v2', 'flow', $token->login_token]),
         ]);
     }
 
@@ -164,9 +180,24 @@ class NextcloudController extends Base
                 if ($req->bool('confirm')) {
                     $user = $this->session->user;
                     $ap = AppPasswords::New($token->user_agent, $user, $generatedPassword);
-                    $token->login_name = $ap->login_name;
-                    $token->app_password = $generatedPassword;
-                    $token->save();
+
+                    if ($token->isV1Token()) {
+                        // V1 flow (android)
+                        $token->delete();
+                        $serverUrl = $req->getAbsoluteUrl();
+                        $serverUrl = substr($serverUrl, 0, strpos($serverUrl, '/index.php/login/'));
+                        $credURL = sprintf('nc://login/server:%s&user:%s&password:%s',
+                                           $serverUrl,
+                                           urlencode($ap->login_name),
+                                           urlencode($generatedPassword));
+                        $res->redirect($credURL);
+                        return;
+                    } else {
+                        // V2 flow (desktop)
+                        $token->login_name = $ap->login_name;
+                        $token->app_password = $generatedPassword;
+                        $token->save();
+                    }
                 }
                 $res->redirect('/');
                 return;
@@ -200,6 +231,7 @@ class NextcloudController extends Base
     }
 
     #[Auto\Route('/ocs/v1.php/cloud/user', method:['GET'])]
+    #[Auto\Route('/ocs/v2.php/cloud/user', method:['GET'])]
     public function userMeta(Response $res, Request $req)
     {
         $res->setJSON([]);
@@ -208,8 +240,16 @@ class NextcloudController extends Base
             $res->setStatus(403);
             return;
         }
+        $userid = $identity->user->id;
+        if (!is_null($identity->appLogin) &&
+            !is_null($req->getHeader('OCS-APIREQUEST'))) {
+            // The android client erroneously uses the value in 'id' to build DAV urls instead
+            // of the login name obtained from login flow.
+            // Nothing else uses the ID anyway, so we can just lie to it here.
+            $userid = $identity->appLogin;
+        }
         $res->setJSON($this->wrapOCS([
-            'id' => $identity->user->id,
+            'id' => $userid,
             'display-name' => $identity->user->username,
             'email' => $identity->user->username,
         ]));

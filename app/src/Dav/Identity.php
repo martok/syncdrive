@@ -17,6 +17,7 @@ class Identity
     private string $realm = 'Login';
     public int $type = self::TYPE_UNAUTHENTICATED;
     public ?Model\Users $user = null;
+    public ?string $appLogin = null;
     public ?Model\InodeShares $share = null;
 
     public function __construct(string $realm)
@@ -68,10 +69,15 @@ class Identity
         $basic = new Auth\Basic($this->realm, $request, $response);
         if ($cred = $basic->getCredentials()) {
             [$login, $pass] = $cred;
-            if (($user = $this->checkLoginUser($login, $urlLogin, $pass)) ||
-                ($user = $this->checkLoginApp($login, $urlLogin, $pass))) {
+            if ($user = $this->checkLoginUser($login, $urlLogin, $pass)) {
                 $this->type = self::TYPE_USER;
                 $this->user = $user;
+                return true;
+            }
+            if ($user = $this->checkLoginApp($login, $urlLogin, $pass)) {
+                $this->type = self::TYPE_USER;
+                $this->user = $user;
+                $this->appLogin = $login;
                 return true;
             }
         }
@@ -90,6 +96,7 @@ class Identity
             if (($user = $this->checkLoginApp($login, $urlLogin, $pass))) {
                 $this->type = self::TYPE_USER;
                 $this->user = $user;
+                $this->appLogin = $login;
                 return true;
             }
         }
