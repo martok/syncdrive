@@ -40,7 +40,7 @@ class ChunkedUploads extends \Pop\Db\Record
         return null;
     }
 
-    public static function NewV1(int $transfer, int $count): static
+    public static function NewV1(string $transfer, int $count): static
     {
         return new static([
             'transfer_id' => $transfer,
@@ -49,7 +49,7 @@ class ChunkedUploads extends \Pop\Db\Record
         ]);
     }
 
-    public static function NewV2(int $transfer, int $totalLength): static
+    public static function NewV2(string $transfer, int $totalLength): static
     {
         return new static([
             'transfer_id' => $transfer,
@@ -58,15 +58,15 @@ class ChunkedUploads extends \Pop\Db\Record
         ]);
     }
 
-    public static function FindOrStartTransfer(string $transferid, ?int $partCount = null, ?int $totalLength = null): static
+    public static function FindOrStartTransfer(string $transfer, ?int $partCount = null, ?int $totalLength = null): static
     {
         // find the existing transfer or create new record
-        $upload = static::Find($transferid);
+        $upload = static::Find($transfer);
         if (!$upload) {
             if (!is_null($partCount)) {
-                $upload = static::NewV1($transferid, $partCount);
+                $upload = static::NewV1($transfer, $partCount);
             } elseif (!is_null($totalLength)) {
-                $upload = static::NewV2($transferid, $totalLength);
+                $upload = static::NewV2($transfer, $totalLength);
             } else
                 throw new Exception\BadRequest('Chunked upload version not recognized');
             $upload->save();
@@ -84,16 +84,16 @@ class ChunkedUploads extends \Pop\Db\Record
         return ChunkedUploadParts::getTotal(['upload_id' => $this->id]);
     }
 
-    public function saveChunk(int $partNo, ObjectInfo $object, ObjectStorage $storage): ChunkedUploadParts
+    public function saveChunk(string $partIdent, ObjectInfo $object, ObjectStorage $storage): ChunkedUploadParts
     {
         // if we already had data for that part, replace it
-        $part = ChunkedUploadParts::findOne(['upload_id' => $this->id, 'part' => $partNo]);
+        $part = ChunkedUploadParts::findOne(['upload_id' => $this->id, 'part' => $partIdent]);
         if (!is_null($part->object)) {
             $storage->removeObject($part->object);
             $part->object = $object->object;
             $part->size = $object->size;
         } else {
-            $part = ChunkedUploadParts::New($this, $partNo, $object);
+            $part = ChunkedUploadParts::New($this, $partIdent, $object);
         }
         $part->save();
         return $part;

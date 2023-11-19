@@ -255,6 +255,27 @@ class NextcloudController extends Base
         ]));
     }
 
+    private function checkTransferId(string $transfer): bool
+    {
+        return 1 === preg_match('#^[0-9a-z]{3,255}$#i', $transfer);
+    }
+
+    private function checkPartNo(string $part, ?string $chunkOffsetHeader): array
+    {
+        // standard form: numeric ident and header
+        if (is_numeric($part) && is_numeric($chunkOffsetHeader)) {
+            return [($part), (int)$chunkOffsetHeader];
+        }
+        // Android clients >= 3.26: no header, and numeric ident
+        if (is_numeric($part) && empty($chunkOffsetHeader)) {
+            return [($part), null];
+        }
+        // Android clients < 3.26: no header, and ident as <start>-<end>
+        if (preg_match('#^(\d+)-(\d+)$#', $part, $matches) && empty($chunkOffsetHeader))
+            return [(int)$matches[1], (int)$matches[1]];
+        return [null, null];
+    }
+
     #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>', method: 'MKCOL')]
     public function chunkingInitiate(Response $res, Request $req, string $login, string $transfer)
     {
@@ -266,12 +287,18 @@ class NextcloudController extends Base
         $context = new Context($this->app, $identity);
         $server = new ServerAdapter(new Tree(new VirtualRoot($context)), $req, $res);
         try {
-            if (!is_numeric($transfer)) {
+            if (!$this->checkTransferId($transfer)) {
                 throw new Exception\BadRequest('Invalid transfer id');
             }
-            if (!is_numeric($totalLength = $req->getHeader('OC-Total-Length'))) {
-                throw new Exception\BadRequest('Missing final file size');
+            if ($totalLength = $req->getHeader('OC-Total-Length')) {
+                if (!is_numeric($totalLength)) {
+                    throw new Exception\BadRequest('Bad final file size');
+                }
+            } else {
+                // Mobile clients don't send OC-Total-Length
+                $totalLength = -1;
             }
+
             ChunkedUploads::db()->beginTransaction();
             if (!is_null(ChunkedUploads::Find($transfer))) {
                 throw new Exception\BadRequest('Duplicate transfer id');
@@ -285,8 +312,8 @@ class NextcloudController extends Base
         }
     }
 
-    #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>/<part>', method: 'PUT')]
-    public function chunkingPut(Response $res, Request $req, string $login, string $transfer, string $part)
+    #[Auto\Route(DavController::PREFIX_CHUNKING_V2 . '<login>/<transfer>/<partIdent>', method: 'PUT')]
+    public function chunkingPut(Response $res, Request $req, string $login, string $transfer, string $partIdent)
     {
         $identity = new Identity($this->app->cfg('site.title'));
         if (!$identity->initApp($req, $res, $login)) {
@@ -300,19 +327,23 @@ class NextcloudController extends Base
             if (is_null($upload)) {
                 throw new Exception\BadRequest('Transfer not created');
             }
-            if (!is_numeric($part)) {
+            list($part, $offset) = $this->checkPartNo($partIdent, $req->getHeader('OC-Chunk-Offset'));
+            if (is_null($part)) {
                 throw new Exception\BadRequest('Invalid chunk number');
             }
-            if (!is_numeric($length = $req->getHeader('Content-Length')) ||
-                !is_numeric($offset = $req->getHeader('OC-Chunk-Offset')) ||
-                (int)$offset + (int)$length > $upload->total_length) {
+            // if we have an offset and got a length ahead of time, check it
+            if (!is_null($offset) &&
+                ($upload->total_length >= 0) && (
+                !is_numeric($length = $req->getHeader('Content-Length')) ||
+                ((int)$offset + (int)$length > $upload->total_length))
+                ) {
                 throw new Exception\BadRequest('Invalid chunk size');
             }
 
             $context->setupStorage();
             $object = $context->storeUploadedData($req->getBodyAsStream());
             ChunkedUploads::db()->beginTransaction();
-            $upload->saveChunk($part, $object, $context->storage);
+            $upload->saveChunk($partIdent, $object, $context->storage);
             ChunkedUploads::db()->commit();
             $res->setStatus(201);
         } catch (Exception $e) {
@@ -390,13 +421,11 @@ class NextcloudController extends Base
             if (is_null($upload)) {
                 throw new Exception\BadRequest('Transfer not created');
             }
-            $totalLength = 0;
-            foreach ($upload->findParts() as $part) {
-                $totalLength += $part->size;
-            }
-            if (($totalLength != $upload->total_length) ||
+            $totalLength = array_sum($upload->findParts()->toArray(['column' => 'size']));
+            // if the total length was given either before or in this request, check it
+            if ((($upload->total_length >= 0) && ($totalLength != $upload->total_length)) ||
                 (is_numeric($req->getHeader('OC-Total-Length')) &&
-                    ($totalLength != (int)$req->getHeader('OC-Total-Length')))) {
+                 ($totalLength != (int)$req->getHeader('OC-Total-Length')))) {
                 throw new Exception\BadRequest('Upload is not complete');
             }
 

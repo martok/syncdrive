@@ -45,3 +45,26 @@ Important to respond to those:
 * `{http://owncloud.org/ns}id` FileID
 * `{DAV:}getetag` also on Directory
 * `{http://owncloud.org/ns}permissions` effective permissions + flags (shared, mountpoint)
+
+
+### Chunked file uploads
+
+#### V1
+
+* Upload parts as `filename.ext-chunking-<partcount>-<part>`
+* When all parts are uploaded and checksum passed, file is assembled and Etag returned. all others return nothing.
+
+#### V2
+
+* `MKCOL /remote.php/dav/upload/<transferid>`, `PROPFIND /remote.php/dav/upload/<transferid>`
+* `PUT /remote.php/dav/upload/<transferid>/<part>`
+* `MOVE /remote.php/dav/upload/<transferid>/.file Destination:<the-real-path>`
+  also sends `If:` header
+
+* `<transferid>` is supposed to be numeric
+* `<part>` must be numeric and in ascending order
+
+This is heavily broken/misimplemented in android < 3.26!
+
+* `<transferid>` is md5 of the file (note this is not unique!)
+* instead of `<part>`, we get `<startbyte>-<endbyte>`

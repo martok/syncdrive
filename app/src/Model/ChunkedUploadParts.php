@@ -10,16 +10,16 @@ class ChunkedUploadParts extends \Pop\Db\Record
     /*
      * int id
      * int upload_id ChunkedUploads
-     * int part
+     * varchar part
      * int size
      * varchar object ObjectStorage
      */
 
-    public static function New(ChunkedUploads $upload, int $part, ObjectInfo $object): static
+    public static function New(ChunkedUploads $upload, string $partIdent, ObjectInfo $object): static
     {
         return new static([
             'upload_id' => $upload->id,
-            'part' => $part,
+            'part' => $partIdent,
             'size' => $object->size,
             'object' => $object->object,
         ]);

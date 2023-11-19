@@ -14,7 +14,7 @@ class VirtualFilePart extends \Sabre\DAV\File
 
     public function getName()
     {
-        return sprintf('%06d', $this->part->part);
+        return $this->part->part;
     }
 
     public function get()

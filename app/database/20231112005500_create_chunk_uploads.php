@@ -19,7 +19,7 @@ class CreateChunkedUploads extends AbstractMigration
         $schema->create('chunked_upload_parts')
             ->int('id', 16)->increment()
             ->int('upload_id', 16)
-            ->int('part', 16)
+            ->varchar('part', 255)
             ->int('size', 16)
             ->varchar('object', 255)
             ->primary('id')
