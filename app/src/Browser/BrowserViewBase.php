@@ -68,6 +68,28 @@ class BrowserViewBase
         return true;
     }
 
+    protected function nodeToListing(Node $node, string $qualifiedPath): array
+    {
+        $size = $node instanceof File ? $node->getSize() : 0;
+        $hasChildren = $node instanceof IIndexableCollection ? $node->hasChildren() : false;
+        return [
+            '.' => $node,
+            'id' => $node->getInodeId(),
+            'name' => $node->getName(),
+            'path' => $qualifiedPath,
+            'isFolder' => $node instanceof IIndexableCollection,
+            'contentType' => $node instanceof File ? $node->getContentType() ?? '' : null,
+            'icon' => TreeUtil::getNodeIcon($node),
+            'modified' => $node->getLastModified(),
+            'size' => $size,
+            'hasChildren' => $hasChildren,
+            'isShared' => $node->isLink() || $node->hasShares(),
+            'deleted' => $node->deletedTimestamp(),
+            'ownerName' => NodeResolver::UserGetName($node->getInode(false)->owner_id),
+            'perms' => (string)$node->getPerms(),
+        ];
+    }
+
     public function getListing(bool $showDeleted=false, string $sortedByKey='name'): array
     {
         assert($this->requestedItem instanceof IIndexableCollection);
@@ -76,24 +98,7 @@ class BrowserViewBase
         foreach ($children as $file) {
             $qualifiedName = $file->isDeleted() ? $file->getQualifiedName() : $file->getName();
             $qualifiedPath = TreeUtil::extendPath($this->uriItem, $qualifiedName);
-            $size = $file instanceof File ? $file->getSize() : 0;
-            $hasChildren = $file instanceof IIndexableCollection ? $file->hasChildren() : false;
-            $list[] = [
-                '.' => $file,
-                'id' => $file->getInodeId(),
-                'name' => $file->getName(),
-                'path' => $qualifiedPath,
-                'isFolder' => $file instanceof IIndexableCollection,
-                'contentType' => $file instanceof File ? $file->getContentType() ?? '' : null,
-                'icon' => TreeUtil::getNodeIcon($file),
-                'modified' => $file->getLastModified(),
-                'size' => $size,
-                'hasChildren' => $hasChildren,
-                'isShared' => $file->isLink() || $file->hasShares(),
-                'deleted' => $file->deletedTimestamp(),
-                'ownerName' => NodeResolver::UserGetName($file->getInode(false)->owner_id),
-                'perms' => (string)$file->getPerms(),
-            ];
+            $list[] = $this->nodeToListing($file, $qualifiedPath);
         }
         if (str_starts_with($sortedByKey, '-')) {
             $invert = -1;

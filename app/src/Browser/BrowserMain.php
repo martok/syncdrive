@@ -15,6 +15,8 @@ class BrowserMain extends BrowserViewBase
         $listing = TreeUtil::filterListKeys($listing, [
             'path', 'name', 'modified', 'size', 'perms', 'icon', 'deleted', 'isShared', 'isFolder', 'ownerName'
         ]);
+        $uriFile = $this->nodeToListing($this->requestedItem, $this->uriItem);
+
         $view = $this->controller->initTemplateView('index_browse.twig');
         $view->set('files', [
             'breadcrumbs' => TreeUtil::getPathBreadcrumbs(explode('/', $this->uriItem)),
@@ -25,6 +27,7 @@ class BrowserMain extends BrowserViewBase
         $view->export('BROWSE_PATH', Path::IncludeTrailingSlash('/' . $this->uriItem));
         $view->export('URI_BASE', $this->uriBase);
         $view->export('CURRENT_PERMISSIONS', (string)$this->requestedItem->getInnerPerms());
+        $view->export('CURRENT_FILE', $uriFile);
         $view->export('BROWSE_UPLOAD_PATH', DavController::MakeUserPath($context->identity->getUserId(),
                                                                         Path::IncludeTrailingSlash($this->uriItem)));
         $view->export('SHARE_PUBLIC_PRESENTATIONS', PresentationBase::AvailablePresentations());

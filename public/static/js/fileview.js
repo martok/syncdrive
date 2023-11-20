@@ -25,7 +25,6 @@ function hasPerms(perms) {
 					evt.preventDefault();
 				}
 			})
-			this.renameBtn = null;
 			this.fileDetails = new FileDetailBar();
 			if (document.getElementById('upload-drop')) {
 				this.uploadDropper = new UploadDropper(document.getElementById('upload-drop'), '.files-main');
@@ -33,6 +32,11 @@ function hasPerms(perms) {
 				this.uploader = new Uploader(document.getElementById('upload-status'));
 				this.uploader.concurrent = 2;
 				document.getElementById('fileUpload').addEventListener('change', this.onUploadFilesSelected.bind(this));
+			}
+			const bc = document.getElementById('browse-breadcrumbs');
+			if (bc.childElementCount > 1) {
+				bc.lastElementChild.append(UKIcon('icon: info; ratio: 0.8',
+					{$: 'uk-margin-small-left', title: 'Show details', onclick: this.onEditCurrentClick.bind(this)}));
 			}
 			document.getElementById('upload')?.addEventListener('click', this.onToolbarUploadClick.bind(this));
 			document.getElementById('newfolder')?.addEventListener('click', this.onToolbarNewFolderClick.bind(this));
@@ -100,6 +104,10 @@ function hasPerms(perms) {
 				pasteBtn.lastElementChild.innerText = '';
 				pasteBtn.title = '';
 			}
+		}
+
+		onEditCurrentClick() {
+			this.fileDetails.setFile(CURRENT_FILE);
 		}
 
 		async onToolbarUploadClick() {

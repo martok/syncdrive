@@ -2,7 +2,7 @@
 
 <!-- Breadcrumbs -->
 <div class="uk-clearfix">
-    <ul class="uk-breadcrumb uk-float-left">
+    <ul class="uk-breadcrumb uk-float-left" id="browse-breadcrumbs">
         <li><a href="{{ files.base }}"><i uk-icon="server"></i></a></li>
         {% for segment in files.breadcrumbs %}
             <li><a href="{{ files.base }}/{{ segment.path }}">{{ segment.name }}</a></li>
