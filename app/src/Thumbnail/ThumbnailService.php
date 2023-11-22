@@ -39,7 +39,7 @@ class ThumbnailService
     {
         // use a static variable to avoid loading the classes unless we really need them
         static $list = [
-
+            ImagineThumbnailer::class,
         ];
         return $list;
     }

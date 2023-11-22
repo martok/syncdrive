@@ -67,7 +67,7 @@ class File extends Node implements IFile
     public function guessContentType(): ?string
     {
         if (($ext = pathinfo($this->getName(), PATHINFO_EXTENSION)) &&
-            ($mime = MimeType::tryFromExtension($ext)))
+            ($mime = MimeType::tryFromExtension(strtolower($ext))))
             return $mime->value;
         return null;
     }
