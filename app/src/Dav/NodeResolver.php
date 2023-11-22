@@ -15,7 +15,6 @@ class NodeResolver
 {
     const MAX_INCREMENT_ATTEMPTS = 1000;
 
-    private static array $inodeParentCache = [];
     private static array $inodeSharedCache = [];
     private static array $inodeOwnerNameCache = [];
 
@@ -68,13 +67,10 @@ class NodeResolver
         while ($inode > 0) {
             if ($inode == $parentInode)
                 return true;
-            if (!isset(self::$inodeParentCache[$inode])) {
-                $node = Inodes::Find($inode, ['parent_id']);
-                if (is_null($node->parent_id))
-                    break;
-                self::$inodeParentCache[$inode] = $node->parent_id;
-            }
-            $inode = self::$inodeParentCache[$inode];
+            $node = Inodes::Find($inode, ['parent_id']);
+            if (is_null($node->parent_id))
+                break;
+            $inode = $node->parent_id;
         }
         return false;
     }
@@ -96,8 +92,7 @@ class NodeResolver
             if ($inode === $parentInode)
                 return true;
 
-            $parent = self::$inodeParentCache[$inode] ??=
-                Inodes::Find($inode, ['id', 'parent_id'])->parent_id;
+            $parent = Inodes::Find($inode, ['id', 'parent_id'])->parent_id;
 
             // is this node shared anywhere?
             $sharedAs = self::$inodeSharedCache[$inode] ??=
