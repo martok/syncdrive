@@ -1,4 +1,5 @@
 .idea
 data/
 vendor/
-
+public/static/css/*.css
+public/static/css/*.css.map
