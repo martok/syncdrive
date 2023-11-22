@@ -9,6 +9,7 @@ use App\Model\ChunkedUploadParts;
 use App\Model\ChunkedUploads;
 use App\Model\Inodes;
 use App\ObjectStorage\ObjectInfo;
+use App\Thumbnail\ThumbnailService;
 use Sabre\DAV\Exception;
 use Sabre\DAV\ICollection;
 use Sabre\DAV\ICopyTarget;
@@ -31,6 +32,7 @@ class Directory extends Node implements ICollection, IIndexableCollection, IMove
         $etag = self::CreateFileIn($this, $name, $object);
         Inodes::db()->commit();
         self::AddUploadHeaders($this->getChild($name));
+        (new ThumbnailService($this->ctx))->maybeCreateThumbnail($object, $name);
         return $etag;
     }
 

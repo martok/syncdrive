@@ -4,6 +4,7 @@ namespace App\Dav\FS;
 
 use App\Dav\Perm;
 use App\Model\ChunkedUploads;
+use App\Thumbnail\ThumbnailService;
 use Sabre\DAV\Exception;
 
 /**
@@ -62,12 +63,14 @@ trait ChunkedUploadTrait
         // object is assembled, save file info
         ChunkedUploads::db()->beginTransaction();
         if ($existingFile) {
+            $newName = $existingFile->getName();
             $etag = self::UpdateFile($existingFile, $object);
         } else {
             $etag = self::CreateFileIn($this, $newName, $object);
         }
         $upload->deleteWithParts($this->ctx->storage);
         ChunkedUploads::db()->commit();
+        (new ThumbnailService($this->ctx))->maybeCreateThumbnail($object, $newName);
         return $etag;
     }
 }

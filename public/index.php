@@ -16,6 +16,7 @@ if ($app->cfg('site.maintenance')) {
         App\Controller\BrowseController::class,
         App\Controller\SharesController::class,
         App\Controller\NextcloudController::class,
+        App\Controller\ThumbnailController::class,
     ]);
 
     $app->tasks->run(100);

@@ -39,4 +39,11 @@ return [
             ]
         ]
     ],
+    'thumbnails' => [
+        'enabled' => true,
+        'maxFileSize' => '10M',
+        'resolutions' =>  [
+            [256, 256]
+        ],
+    ],
 ];

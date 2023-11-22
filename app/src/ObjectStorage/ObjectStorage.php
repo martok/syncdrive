@@ -6,7 +6,9 @@ use App\Dav\TransferChecksums;
 use App\Exception;
 use App\Model\ChunkedUploadParts;
 use App\Model\FileVersions;
+use App\Model\Thumbnails;
 use App\Streams\Stream;
+use App\Thumbnail\ThumbnailService;
 
 class ObjectStorage
 {
@@ -23,7 +25,8 @@ class ObjectStorage
     public static function CountObjectUsers(string $object): int
     {
         return FileVersions::getTotal(['object' => $object]) +
-               ChunkedUploadParts::getTotal(['object' => $object]);
+               ChunkedUploadParts::getTotal(['object' => $object]) +
+               Thumbnails::getTotal(['object' => $object]);
     }
 
     public function __construct(IStorageBackend $backend)
@@ -71,7 +74,7 @@ class ObjectStorage
     }
 
     /**
-     * Ingest request data into a new object and return its id (and the writer).
+     * Ingest request data into a new object and return its info.
      *
      * @param resource|string|null $dataSource File contents
      * @return ObjectInfo The new object's metadata
@@ -84,7 +87,7 @@ class ObjectStorage
     }
 
     /**
-     * Take the given objects and concatenated them into a new object.
+     * Take the given objects and concatenate them into a new object.
      *
      * @param string[] $sourceObjects array of object identifers
      * @return ObjectInfo The new object's metadata
@@ -130,7 +133,10 @@ class ObjectStorage
             return true;
         if (self::CountObjectUsers($object) > 1)
             return true;
-        return $this->backend->removeObject($object);
+        if ($result = $this->backend->removeObject($object)) {
+            $result = $result && ThumbnailService::RemoveObjectThumbnails($this, $object);
+        }
+        return $result;
     }
 
     private function generateObjectIdent(ObjectInfo $info): string

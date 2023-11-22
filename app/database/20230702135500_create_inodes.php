@@ -31,7 +31,8 @@ class CreateInodes extends AbstractMigration
             ->varchar('name', 255)->nullable()
             ->varchar('hashes', 255)->nullable()
             ->primary('id')
-            ->index('inode_id', 'versions_for_inode');
+            ->index('inode_id', 'versions_by_inode')
+            ->index('object', 'versions_by_object');
 
         $schema->create('inode_props')
             ->int('id', 16)->increment()
