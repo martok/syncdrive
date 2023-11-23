@@ -9,11 +9,20 @@ use Nepf2\Util\Path;
 
 class BrowserMain extends BrowserViewBase
 {
-    public function emitDirectoryIndex(Context $context, bool $includeDeleted): void
+    public const VIEW_STYLES = ['table', 'tiled'];
+
+    public function getDefaultIndexState(): array
     {
-        $listing = $this->getListing(showDeleted: $includeDeleted);
+        return array_merge_recursive(parent::getDefaultIndexState(), [
+            'view' => self::VIEW_STYLES[0],
+        ]);
+    }
+
+    public function emitDirectoryIndex(Context $context, array $state): void
+    {
+        $listing = $this->getListing(showDeleted: $state['showDeleted']);
         $listing = TreeUtil::filterListKeys($listing, [
-            'path', 'name', 'modified', 'size', 'perms', 'icon', 'deleted', 'isShared', 'isFolder', 'ownerName'
+            'id', 'path', 'name', 'modified', 'size', 'perms', 'icon', 'deleted', 'isShared', 'isFolder', 'ownerName'
         ]);
         $uriFile = $this->nodeToListing($this->requestedItem, $this->uriItem);
 
@@ -22,7 +31,8 @@ class BrowserMain extends BrowserViewBase
             'breadcrumbs' => TreeUtil::getPathBreadcrumbs(explode('/', $this->uriItem)),
             'base' => $this->uriBase,
             'list' => $listing,
-            'showing_deleted' => $includeDeleted,
+            'view' => $state['view'],
+            'showing_deleted' => $state['showDeleted'],
         ]);
         $view->export('BROWSE_PATH', Path::IncludeTrailingSlash('/' . $this->uriItem));
         $view->export('URI_BASE', $this->uriBase);

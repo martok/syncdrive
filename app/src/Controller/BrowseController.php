@@ -10,6 +10,7 @@ use App\Dav\IIndexableCollection;
 use Nepf2\Auto;
 use Nepf2\Request;
 use Nepf2\Response;
+use Nepf2\Util\Arr;
 use Sabre\DAV;
 
 class BrowseController extends Base
@@ -50,7 +51,10 @@ class BrowseController extends Base
         }
 
         if ($requestedItem instanceof IIndexableCollection) {
-            $browser->emitDirectoryIndex($context, $this->session->showDeleted);
+            $state = Arr::ExtendConfig($browser->getDefaultIndexState(), [
+                'showDeleted' => $this->session->showDeleted,
+            ]);
+            $browser->emitDirectoryIndex($context, $state);
         } elseif ($requestedItem instanceof File) {
             $browser->serveFileDirect($context);
             return false;

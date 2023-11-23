@@ -140,5 +140,17 @@ class BrowserViewBase
         $this->server->start();
     }
 
-    public function emitDirectoryIndex(Context $context, bool $includeDeleted): void {}
+    /**
+     * Override this to add defaults for all state fields that the derived emitDirectoryIndex might need.
+     *
+     * @return array
+     */
+    public function getDefaultIndexState(): array
+    {
+        return [
+            'showDeleted' => false,
+        ];
+    }
+
+    public function emitDirectoryIndex(Context $context, array $state): void {}
 }

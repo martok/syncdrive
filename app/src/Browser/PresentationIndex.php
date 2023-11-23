@@ -7,7 +7,7 @@ use App\Dav\Context;
 
 class PresentationIndex extends PresentationBase
 {
-    public function emitDirectoryIndex(Context $context, bool $includeDeleted): void
+    public function emitDirectoryIndex(Context $context, array $state): void
     {
         $sortedByKey = match ($context->app->request()->str('s')) {
             'n' => 'name',

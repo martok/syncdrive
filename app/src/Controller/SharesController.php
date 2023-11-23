@@ -14,6 +14,7 @@ use App\Model\Users;
 use Nepf2\Auto;
 use Nepf2\Request;
 use Nepf2\Response;
+use Nepf2\Util\Arr;
 
 class SharesController extends Base
 {
@@ -90,7 +91,10 @@ class SharesController extends Base
         $browser->initServer();
 
         if ($requestedItem instanceof IIndexableCollection) {
-            $browser->emitDirectoryIndex($context, false);
+            $state = Arr::ExtendConfig($browser->getDefaultIndexState(), [
+                'showDeleted' => false,
+            ]);
+            $browser->emitDirectoryIndex($context, $state);
         } elseif ($requestedItem instanceof File) {
             $browser->serveFileDirect($context);
             return false;
