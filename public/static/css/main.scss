@@ -140,18 +140,8 @@ div.data-row {
   }
 
   .files-main {
-    table td {
-      padding-top: 6px;
-      padding-bottom: 6px;
 
-      .uk-link, a {
-        color: $color-text;
-      }
-    }
-
-    tr.row-deleted td {
-      opacity: 0.5;
-    }
+    @import '_files-table.scss';
 
     #upload-status {
       padding: 6px;

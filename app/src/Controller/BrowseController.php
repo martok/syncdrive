@@ -32,6 +32,8 @@ class BrowseController extends Base
         $context = new Context($this->app, $identity);
         if (($opt = $req->int('deleted', -1)) !== -1)
             $this->session->showDeleted = !!$opt;
+        if (in_array(($opt = $req->str('view')), BrowserMain::VIEW_STYLES))
+            $this->session->browserView = $opt;
 
         $browser = new BrowserMain($this, $req, $res);
         if (is_null($requestedItem = $browser->initRequestedItem($context, $path))) {
@@ -53,6 +55,7 @@ class BrowseController extends Base
         if ($requestedItem instanceof IIndexableCollection) {
             $state = Arr::ExtendConfig($browser->getDefaultIndexState(), [
                 'showDeleted' => $this->session->showDeleted,
+                'view' => $this->session->browserView,
             ]);
             $browser->emitDirectoryIndex($context, $state);
         } elseif ($requestedItem instanceof File) {

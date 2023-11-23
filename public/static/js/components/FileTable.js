@@ -9,6 +9,10 @@ export class FileTable extends SorTable {
 		this.setColumn(1, { compare: this.sortDateColumn.bind(this) });
 		this.setColumn(2, { compare: this.sortFilesizeColumn.bind(this) });
 		this.sortBy(0);
+		for (const thumbnail of tableElement.querySelectorAll(':scope .thumbnail-container img')) {
+			UIkit.scrollspy(thumbnail);
+			UIkit.util.on(thumbnail, 'inview', this.onThumbnailViewed.bind(this));
+		}
 	}
 
 	_foldersOnTop(left, right, asc) {
@@ -55,5 +59,12 @@ export class FileTable extends SorTable {
 		if (res)
 			return res;
 		return dl.size - dr.size;
+	}
+
+	onThumbnailViewed(e) {
+		const img = e.target;
+		if (img instanceof HTMLImageElement && !img.src && img.dataset.src) {
+			img.src = img.dataset.src;
+		}
 	}
 }

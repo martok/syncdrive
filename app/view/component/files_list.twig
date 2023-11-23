@@ -8,11 +8,23 @@
             <li><a href="{{ files.base }}/{{ segment.path }}">{{ segment.name }}</a></li>
         {% endfor %}
     </ul>
-    {% if files.showing_deleted %}
-        <a class="uk-button uk-button-default uk-button-small uk-float-right" href="?deleted=0"><i uk-icon="trash"></i>Hide deleted</a>
-    {% else %}
-        <a class="uk-button uk-button-default uk-button-small uk-float-right" href="?deleted=1"><i uk-icon="trash"></i>Show deleted</a>
-    {% endif %}
+
+    <button class="uk-button uk-button-default uk-button-small uk-float-right">View Options <i uk-icon="chevron-down"></i></button>
+    <div uk-dropdown="mode:click; duration: 60">
+        <ul class="uk-nav uk-dropdown-nav">
+            <li>
+                {% if files.showing_deleted %}
+                    <a href="?deleted=0"><i uk-icon="trash"></i> Hide deleted</a>
+                {% else %}
+                    <a href="?deleted=1"><i uk-icon="trash"></i> Show deleted</a>
+                {% endif %}
+            </li>
+            <li class="uk-nav-divider"></li>
+            <li class="uk-nav-header">View style</li>
+            <li><a href="?view=table"><i uk-icon="list"></i> Table</a></li>
+            <li><a href="?view=tiled"><i uk-icon="thumbnails"></i> Grid</a></li>
+        </ul>
+    </div>
 </div>
 
 <!-- Toolbar -->
@@ -32,7 +44,7 @@
 {% endif %}
 
 <!-- Files -->
-<table id="file-list-table" class="uk-table uk-table-hover uk-table-striped">
+<table id="file-list-table" class="uk-table uk-table-hover uk-table-striped view-{{ files.view }}">
     <thead>
         <tr>
             <th>Name</th>
@@ -44,8 +56,15 @@
     <tbody>
         {% for file in files.list %}
             <tr data-sortable-row="{{ file|json_encode }}" class="{{ file.deleted ? 'row-deleted' : '' }}">
-                <td><i uk-icon="{{ file.icon }}"></i> <a href="{{ files.base }}/{{ file.path }}">{{ file.name }}</a>
+                <td>
+                    <i uk-icon="{{ file.icon }}"></i>
+                    <a href="{{ files.base }}/{{ file.path }}">{{ file.name }}</a>
                     {%- if file.isShared %} <i uk-icon="link"></i>{% endif -%}
+                    {% if not file.isFolder %}
+                        <div class="thumbnail-container">
+                            <img data-src="/index.php/core/preview?fileId={{ file.id }}&x=256&y=256">
+                        </div>
+                    {% endif %}
                 </td>
                 <td>{{ timeago_element(file.modified) }}</td>
                 <td>{% if not file.isFolder %}{{ file.size| filesize }}{% endif %}</td>
