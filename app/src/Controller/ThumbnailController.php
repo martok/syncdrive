@@ -19,6 +19,8 @@ use Sabre\HTTP\Auth;
 
 class ThumbnailController extends Base
 {
+    const IMAGE_CACHE = 365*24*3600;
+
     #[Auto\Route('/index.php/core/preview', method: 'GET')]
     public function userdav(Response $res, Request $req)
     {
@@ -46,10 +48,21 @@ class ThumbnailController extends Base
 
         $file = Node::FromInode(Inodes::Find($fileId), $context);
 
-        $thumbs = new ThumbnailService($context);
+        // set headers now, we want missing thumbs to be cached as well
+        $res->setHeader('Cache-Control', 'private, max-age='.self::IMAGE_CACHE.', immutable');
+        $res->setHeader('Expires', gmdate('D, d M Y H:i:s \G\M\T', time() + self::IMAGE_CACHE));
 
+        $thumbs = new ThumbnailService($context);
         if (is_null($thumb = $thumbs->findThumbnail($file, $dimX, $dimY))) {
-            $res->standardResponse(404);
+            // normally, we'd just return 404 (and do that for app logins, ie. sync clients)
+            // browsers however don't cache 404 responses or empty responses, when the request was for an <img>.
+            // so instead, we have to lie and say we found a 1x1 transparent gif to avoid future hits.
+            if (is_null($identity->appLogin)) {
+                $res->setHeader('Content-Type', 'image/gif');
+                $res->setBody(base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'));
+            } else {
+                $res->standardResponse(404);
+            }
             return;
         }
 
