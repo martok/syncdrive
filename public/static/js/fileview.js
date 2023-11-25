@@ -1,6 +1,5 @@
-import { SorTable } from "./components/SorTable.js";
-import {EB, UKButton, UKIcon} from "./builder.js";
-import { apiFetch } from "./apiClient.js";
+import {UKButton, UKIcon} from "./builder.js";
+import {apiFetch} from "./apiClient.js";
 import {UploadDropper, Uploader} from "./components/upload.js";
 import {FileDetailBar} from "./components/FileDetailBar.js";
 import {FileTable} from "./components/FileTable.js";

@@ -1,9 +1,11 @@
-import { EB } from "../builder.js";
+import {EB} from "../builder.js";
 import {formatFileSize} from "../formatting.js";
+import {EventSubTrait} from "../mixin.js";
 
 
-class UploadDropper {
+class UploadDropper extends EventSubTrait() {
 	constructor(containerElement, dragTargets) {
+		super();
 		if (typeof dragTargets === "string")
 			dragTargets = [... document.querySelectorAll(dragTargets)];
 		if (!Array.isArray(dragTargets))
@@ -30,14 +32,6 @@ class UploadDropper {
 		}
 		this.containerElement = containerElement;
 		this.dragTargets = dragTargets;
-	}
-
-	on(event, handler) {
-		return $(this.containerElement).on(event, handler);
-	}
-
-	trigger(event, ...args) {
-		$(this.containerElement).trigger(event, args);
 	}
 
 	onFileDrop(event) {

@@ -1,6 +1,8 @@
+import { EventSubTrait } from "../mixin.js";
 
-class SorTable {
+class SorTable extends EventSubTrait() {
 	constructor(tableElement) {
+		super();
 		if (tableElement.tagName !== 'TABLE')
 			throw new TypeError('SorTable argument is not a table element.');
 		this.table = tableElement;
@@ -35,14 +37,6 @@ class SorTable {
 		this._multiSelect = value;
 	}
 
-	on(event, handler) {
-		return $(this.table).on(event, handler);
-	}
-
-	trigger(event, ...args) {
-		$(this.table).trigger(event, args);
-	}
-
 	_decorateHead() {
 		for (const cell of this._thead.cells) {
 			const colIndex = this._columns.push({
@@ -53,7 +47,7 @@ class SorTable {
 			}) - 1;
 			cell.innerHTML += '<i class="sortable-arrow-up" uk-icon="chevron-up"></i>' +
 		 					  '<i class="sortable-arrow-down" uk-icon="chevron-down"></i>';
-			$(cell).click(() => this.sortBy(colIndex, this.sortedBy == colIndex ? !this.sortedAsc : true));
+			cell.addEventListener('click', () => this.sortBy(colIndex, this.sortedBy == colIndex ? !this.sortedAsc : true));
 		}
 	}
 
@@ -76,8 +70,8 @@ class SorTable {
 			if ('sortableRow' in row.dataset) {
 				row.sortableData = JSON.parse(row.dataset.sortableRow);
 			}
-			$(row).click(this._onRowClicked.bind(this, row));
-			$(row).dblclick(this._onRowDblClicked.bind(this, row));
+			row.addEventListener('click', this._onRowClicked.bind(this, row));
+			row.addEventListener('dblclick', this._onRowDblClicked.bind(this, row));
 		}
 	}
 
