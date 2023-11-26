@@ -118,6 +118,7 @@ class Uploader {
 		});
 		uploadState.xhr.addEventListener('load', this._uploadFinished.bind(this, uploadState));
 		uploadState.xhr.addEventListener('error', this._uploadFinished.bind(this, uploadState));
+		uploadState.xhr.withCredentials = true;
 		uploadState.xhr.open(task.method, task.url);
 
 		switch(task.method) {

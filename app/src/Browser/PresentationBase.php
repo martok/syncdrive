@@ -12,6 +12,7 @@ class PresentationBase extends BrowserViewBase
 {
     protected const PRESENTATION_CLASSES = [
         'index' => PresentationIndex::class,
+        'rich' => PresentationRich::class,
     ];
 
     public static function AvailablePresentations(): array
@@ -28,5 +29,9 @@ class PresentationBase extends BrowserViewBase
         if (!$cls || !ClassUtil::IsClass($cls))
             throw new Exception("Unknown presentation class: $name");
         return new $cls($controller, $request, $response);
+    }
+
+    public function updateIndexState(Request $req, array &$state): void
+    {
     }
 }

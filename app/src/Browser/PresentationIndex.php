@@ -47,6 +47,4 @@ class PresentationIndex extends PresentationBase
         $context->app->request()->setQueryParam('raw', '1');
         parent::serveFileDirect($context);
     }
-
-
 }

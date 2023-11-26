@@ -13,6 +13,7 @@
     <button class="uk-button uk-button-default uk-button-small uk-float-right">View Options <i uk-icon="chevron-down"></i></button>
     <div uk-dropdown="mode:click; duration: 60">
         <ul class="uk-nav uk-dropdown-nav">
+            {% if hidden_enabled %}
             <li>
                 {% if files.showing_deleted %}
                     <a href="?deleted=0"><i uk-icon="trash"></i> Hide deleted</a>
@@ -21,6 +22,7 @@
                 {% endif %}
             </li>
             <li class="uk-nav-divider"></li>
+            {% endif %}
             <li class="uk-nav-header">View style</li>
             <li><a href="?view=table"><i uk-icon="list"></i> Table</a></li>
             <li><a href="?view=tiled"><i uk-icon="thumbnails"></i> Grid</a></li>
@@ -75,4 +77,7 @@
             </tr>
         {% endfor %}
     </tbody>
+    {% if not files.list %}
+        <tfoot><tr><td colspan="4">Empty.</td></tr></tfoot>
+    {% endif %}
 </table>

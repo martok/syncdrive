@@ -2,6 +2,13 @@ import {EB} from "./builder.js";
 
 export async function apiFetch(endpoint, body = {}, extraOptions = {}) {
 	const opts = {};
+	if (typeof SHARE_TOKEN !== "undefined") {
+		Object.assign(opts, {
+			headers: new Headers({
+				'X-Share-Token': SHARE_TOKEN,
+			}),
+		});
+	}
 	if (body) {
 		Object.assign(opts,{
 			method: 'POST',

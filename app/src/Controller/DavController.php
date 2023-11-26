@@ -33,11 +33,15 @@ class DavController extends Base
     //   - auth:basic (file manager)
     const PREFIX_SHARE = '/public.php/webdav';
 
-    public static function MakeUserPath(string|int $login, string $path)
+    public static function MakeUserPath(string|int $login, string $path): string
     {
         return Path::Join(self::PREFIX_USER, (string)$login, $path);
     }
 
+    public static function MakeSharePath(string $path): string
+    {
+        return Path::Join(self::PREFIX_SHARE, $path);
+    }
 
     #[Auto\Route(self::WEBDAV_ROOT, method: 'HEAD')]
     public function androiddav(Response $res, Request $req)

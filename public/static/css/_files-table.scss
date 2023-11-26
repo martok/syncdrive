@@ -8,9 +8,11 @@
     .uk-link, a {
       color: $color-text;
     }
+
     .thumbnail-container {
       display: none;
       height: 96px;
+
       img {
         max-height: max-content;
       }
@@ -19,6 +21,14 @@
 
   tr.row-deleted td {
     opacity: 0.5;
+  }
+
+  tfoot tr {
+    border: 1px solid $color-button-border;
+    td {
+      text-align: center;
+      font-style: italic;
+    }
   }
 }
 

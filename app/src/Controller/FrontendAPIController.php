@@ -24,17 +24,32 @@ use Sabre\DAV;
 #[Auto\RoutePrefix('/ajax')]
 class FrontendAPIController extends Base
 {
-    private function initAPIRequest(Response $res, ?Identity &$identity, ?Context &$context): bool
+    private function initAPIRequest(Request $req, Response $res, ?Identity &$identity, ?Context &$context): bool
     {
         if (!$this->isLoggedIn()) {
             $res->standardResponse(403);
             return false;
         }
-        $identity = new Identity($this->app->cfg('site.title'));
-        if (!$identity->initSession($this->session)) {
-            $res->standardResponse(403);
-            return false;
+
+        if ($token = $req->getHeader('X-Share-Token')) {
+            $share = InodeShares::findOne(['token' => $token]);
+            if (is_null($share->id)) {
+                $res->standardResponse(404);
+                return false;
+            }
+            $identity = new Identity($token);
+            if (!$identity->initShare($this->session, $share, null, false)) {
+                $res->standardResponse(403);
+                return false;
+            }
+        } else {
+            $identity = new Identity($this->app->cfg('site.title'));
+            if (!$identity->initSession($this->session)) {
+                $res->standardResponse(403);
+                return false;
+            }
         }
+
         $context = new Context($this->app, $identity);
         return true;
     }
@@ -57,7 +72,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/version/list', method:['POST'])]
     public function versionList(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -90,7 +105,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/version/restore', method:['POST'])]
     public function versionRestore(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -134,7 +149,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/file/new/folder', method:['POST'])]
     public function fileNewFolder(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -176,7 +191,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/file/paste', method:['POST'])]
     public function filePaste(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -259,7 +274,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/file/rename', method:['POST'])]
     public function fileRename(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -294,7 +309,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/file/delete', method:['POST'])]
     public function fileDelete(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -333,7 +348,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/file/restore', method:['POST'])]
     public function fileRestore(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -372,7 +387,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/file/remove', method:['POST'])]
     public function fileRemove(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         $params = $req->jsonBody();
@@ -413,7 +428,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/share/list', method:['POST'])]
     public function shareList(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         if (is_null($userid = $identity->getUserId())) {
@@ -536,7 +551,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/share/new', method:['POST'])]
     public function shareNew(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         if (is_null($userid = $identity->getUserId())) {
@@ -604,7 +619,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/share/edit', method:['POST'])]
     public function shareEdit(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         if (is_null($userid = $identity->getUserId())) {
@@ -641,7 +656,7 @@ class FrontendAPIController extends Base
     #[Auto\Route('/share/remove', method:['POST'])]
     public function shareUnshare(Response $res, Request $req)
     {
-        if (!$this->initAPIRequest($res, $identity, $context))
+        if (!$this->initAPIRequest($req, $res, $identity, $context))
             return;
 
         if (is_null($userid = $identity->getUserId())) {

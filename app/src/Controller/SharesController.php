@@ -61,6 +61,17 @@ class SharesController extends Base
         $res->setBody($view->render());
     }
 
+    private function &initShareState(string $token): array
+    {
+        $session = $this->app->session;
+        if (!isset($session->publicStates))
+            $session->publicStates = [];
+        $states = &$session->publicStates;
+        if (!isset($states[$token]))
+            $states[$token] = [];
+        return $states[$token];
+    }
+
     #[Auto\Route('/s/<token>', method:['GET', 'POST'])]
     #[Auto\Route('/s/<token>/<path*>', method:['GET', 'POST'], slash:true)]
     public function shareView(Response $res, Request $req, string $token, array $path=[])
@@ -91,9 +102,12 @@ class SharesController extends Base
         $browser->initServer();
 
         if ($requestedItem instanceof IIndexableCollection) {
-            $state = Arr::ExtendConfig($browser->getDefaultIndexState(), [
+            $localState = $this->initShareState($token);
+            $browser->updateIndexState($req, $localState);
+            $state = Arr::ExtendConfig($browser->getDefaultIndexState(), array_merge_recursive($localState, [
+                'share' => $token,
                 'showDeleted' => false,
-            ]);
+            ]));
             $browser->emitDirectoryIndex($context, $state);
         } elseif ($requestedItem instanceof File) {
             $browser->serveFileDirect($context);

@@ -1,0 +1,9 @@
+{% extends "base/_frontend_container.twig" %}
+{% set navbar_dummy = 1 %}
+
+{% block content_main %}
+	<div class="files-share">
+		{% include "component/files_list.twig" %}
+	</div>
+	<script src="/static/js/view/FileViewController.js" type="module"></script>
+{% endblock %}

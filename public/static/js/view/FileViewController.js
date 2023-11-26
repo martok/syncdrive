@@ -38,10 +38,13 @@ import {FileTable} from "../components/FileTable.js";
 
 			let btn;
 			if (hasPerms('C') || hasPerms('W')) {
+				this.storageKey = LS_COPIED_FILES;
+				if (typeof SHARE_TOKEN !== "undefined")
+					this.storageKey += ':' + SHARE_TOKEN;
 				window.addEventListener('storage', this.onStorageChanged.bind(this));
 				this.onStorageChanged();
 
-				this.uploadDropper = new UploadDropper(document.getElementById('upload-drop'), '.files-main');
+				this.uploadDropper = new UploadDropper(document.getElementById('upload-drop'), '.files-main,.files-share');
 				this.uploadDropper.on('dropper:filesdropped', this.onUploadFilesDropped.bind(this));
 				this.uploader = new Uploader(document.getElementById('upload-status'));
 				this.uploader.concurrent = 2;
@@ -108,7 +111,7 @@ import {FileTable} from "../components/FileTable.js";
 		}
 
 		onStorageChanged() {
-			const copied = JSON.parse(localStorage.getItem(LS_COPIED_FILES) ?? '{}');
+			const copied = JSON.parse(localStorage.getItem(this.storageKey) ?? '{}');
 			const pasteBtn = document.getElementById('action-paste');
 			if (copied && copied.operation && copied.paths && copied.paths.length) {
 				pasteBtn.disabled = false;
@@ -130,16 +133,25 @@ import {FileTable} from "../components/FileTable.js";
 			document.getElementById('fileUpload').click();
 		}
 
+		_fullUploadPath() {
+			const url = new URL(window.location.href);
+			url.pathname = BROWSE_UPLOAD_PATH;
+			// for public shares, just encode the token and take auth from the interactive session
+			url.username = (typeof SHARE_TOKEN !== "undefined") ? SHARE_TOKEN : '';
+			url.password = '-';
+			return url.href;
+		}
+
 		async onUploadFilesSelected(e) {
 			e.preventDefault();
 			if (e.target.files) {
-				this.uploader.putFiles(BROWSE_UPLOAD_PATH, e.target.files);
+				this.uploader.putFiles(this._fullUploadPath(), e.target.files);
 			}
 			e.target.value = "";
 		}
 
 		async onUploadFilesDropped(e, files) {
-			this.uploader.putFiles(BROWSE_UPLOAD_PATH, files);
+			this.uploader.putFiles(this._fullUploadPath(), files);
 		}
 
 		async onToolbarNewFolderClick() {
@@ -176,12 +188,12 @@ import {FileTable} from "../components/FileTable.js";
 			const selected = this.fileTable.getSelectedRows();
 			const files = Array.prototype.map.call(selected, (row) => row.sortableData);
 			const paths = files.map((file) => file.path);
-			localStorage.setItem(LS_COPIED_FILES, JSON.stringify({operation, paths}));
+			localStorage.setItem(this.storageKey, JSON.stringify({operation, paths}));
 			this.onStorageChanged();
 		}
 
 		async onToolbarPasteClick(operation) {
-			const copied = JSON.parse(localStorage.getItem(LS_COPIED_FILES) ?? '{}');
+			const copied = JSON.parse(localStorage.getItem(this.storageKey) ?? '{}');
 			if (copied && copied.operation && copied.paths && copied.paths.length) {
 				const result = await apiFetch(`/ajax/file/paste`, {
 					operation: copied.operation,
@@ -189,7 +201,7 @@ import {FileTable} from "../components/FileTable.js";
 					files: copied.paths,
 				});
 				if (result && result.result) {
-					localStorage.removeItem(LS_COPIED_FILES);
+					localStorage.removeItem(this.storageKey);
 					window.location.reload();
 				}
 			}
