@@ -4,8 +4,8 @@ import {EB, UKButton, UKFormControl, UKIcon} from "../builder.js";
 
 
 class FileDetailBar {
-	constructor () {
-		this.sidebar = document.querySelector('div.files-right');
+	constructor (sidebar) {
+		this.sidebar = sidebar;
 		this.accordion = this.sidebar.querySelector('#file-details');
 		this.headerText = this.sidebar.querySelector('#selected-file-name');
 		this.infoTable = this.sidebar.querySelector('#selected-file-properties');

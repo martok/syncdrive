@@ -91,12 +91,16 @@ div.data-row {
 }
 
 #upload-status {
+  padding: 6px;
   .upload-wrapper {
     &.upload-finished progress {
       @include progress-bar-color($color-text-success);
     }
     &.upload-failed progress {
       @include progress-bar-color($color-text-danger);
+    }
+    .uk-progress {
+      margin: 0;
     }
   }
 }
@@ -128,7 +132,6 @@ div.data-row {
 
 
 .file-browser-frame {
-
   .files-left {
     .files-tree {
       flex-grow: 1;
@@ -140,18 +143,7 @@ div.data-row {
   }
 
   .files-main {
-
     @import '_files-table.scss';
-
-    #upload-status {
-      padding: 6px;
-
-      .upload-wrapper {
-        .uk-progress {
-          margin: 0;
-        }
-      }
-    }
   }
 
   .files-right {

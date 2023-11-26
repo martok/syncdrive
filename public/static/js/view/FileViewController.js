@@ -1,16 +1,16 @@
-import {UKButton, UKIcon} from "./builder.js";
-import {apiFetch} from "./apiClient.js";
-import {UploadDropper, Uploader} from "./components/upload.js";
-import {FileDetailBar} from "./components/FileDetailBar.js";
-import {FileTable} from "./components/FileTable.js";
+import {UKButton, UKIcon} from "../builder.js";
+import {apiFetch} from "../apiClient.js";
+import {UploadDropper, Uploader} from "../components/upload.js";
+import {FileDetailBar} from "../components/FileDetailBar.js";
+import {FileTable} from "../components/FileTable.js";
 
-
-function hasPerms(perms) {
-	return Array.prototype.every.call(perms, p => CURRENT_PERMISSIONS.includes(p));
-}
 
 (function () {
 	const LS_COPIED_FILES = 'browse:copied';
+
+	function hasPerms(perms) {
+		return Array.prototype.every.call(perms, p => CURRENT_PERMISSIONS.includes(p));
+	}
 
 	class FileViewController {
 		constructor() {
@@ -23,26 +23,42 @@ function hasPerms(perms) {
 					this.fileTable.selectAll();
 					evt.preventDefault();
 				}
-			})
-			this.fileDetails = new FileDetailBar();
-			if (document.getElementById('upload-drop')) {
+			});
+			const sidebar = document.querySelector('div.files-right');
+			if (sidebar) {
+				this.fileDetails = new FileDetailBar(sidebar);
+				const bc = document.getElementById('browse-breadcrumbs');
+				if (bc.childElementCount > 1) {
+					bc.lastElementChild.append(UKIcon('icon: info; ratio: 0.8',
+						{$: 'uk-margin-small-left', title: 'Show details', onclick: this.onEditCurrentClick.bind(this)}));
+				}
+			} else {
+				this.fileDetails = null;
+			}
+
+			let btn;
+			if (hasPerms('C') || hasPerms('W')) {
+				window.addEventListener('storage', this.onStorageChanged.bind(this));
+				this.onStorageChanged();
+
 				this.uploadDropper = new UploadDropper(document.getElementById('upload-drop'), '.files-main');
 				this.uploadDropper.on('dropper:filesdropped', this.onUploadFilesDropped.bind(this));
 				this.uploader = new Uploader(document.getElementById('upload-status'));
 				this.uploader.concurrent = 2;
 				document.getElementById('fileUpload').addEventListener('change', this.onUploadFilesSelected.bind(this));
+
+				btn = document.getElementById('action-upload');
+				btn.addEventListener('click', this.onToolbarUploadClick.bind(this));
+				btn.disabled = false;
+				document.getElementById('action-paste').addEventListener('click', this.onToolbarPasteClick.bind(this));
 			}
-			const bc = document.getElementById('browse-breadcrumbs');
-			if (bc.childElementCount > 1) {
-				bc.lastElementChild.append(UKIcon('icon: info; ratio: 0.8',
-					{$: 'uk-margin-small-left', title: 'Show details', onclick: this.onEditCurrentClick.bind(this)}));
+
+			if (hasPerms('K') && (btn = document.getElementById('action-new-folder'))) {
+				btn.addEventListener('click', this.onToolbarNewFolderClick.bind(this));
+				btn.disabled = false;
 			}
-			document.getElementById('upload')?.addEventListener('click', this.onToolbarUploadClick.bind(this));
-			document.getElementById('newfolder')?.addEventListener('click', this.onToolbarNewFolderClick.bind(this));
-			document.getElementById('file-paste')?.addEventListener('click', this.onToolbarPasteClick.bind(this));
-			document.getElementById('file-rename')?.addEventListener('click', this.onToolbarRenameClick.bind(this));
-			window.addEventListener('storage', this.onStorageChanged.bind(this));
-			this.onStorageChanged();
+			document.getElementById('action-rename').addEventListener('click', this.onToolbarRenameClick.bind(this));
+
 			this.onSelectionChanged();
 		}
 
@@ -75,11 +91,12 @@ function hasPerms(perms) {
 			const selected = this.fileTable.getSelectedRows();
 			const focused = this.fileTable.getFocusedRow();
 			const isSelected = Array.prototype.includes.call(selected, focused);
-			this.fileDetails.setFile(isSelected ? focused.sortableData : null);
+			const file = isSelected ? focused.sortableData : null;
+			const canRename = isSelected && !file.deleted && file.perms.includes('N');
+			document.getElementById('action-rename').disabled = !canRename;
 			this.updateToolbarForSelection(selected);
-			const canRename = isSelected && !focused.sortableData.deleted
-										 && focused.sortableData.perms.includes('N');
-			document.getElementById('file-rename').disabled = !canRename;
+			if (this.fileDetails)
+				this.fileDetails.setFile(file);
 		}
 
 		onSelectionDoubleClicked() {
@@ -92,7 +109,7 @@ function hasPerms(perms) {
 
 		onStorageChanged() {
 			const copied = JSON.parse(localStorage.getItem(LS_COPIED_FILES) ?? '{}');
-			const pasteBtn = document.getElementById('file-paste');
+			const pasteBtn = document.getElementById('action-paste');
 			if (copied && copied.operation && copied.paths && copied.paths.length) {
 				pasteBtn.disabled = false;
 				pasteBtn.lastElementChild.innerText = `(${copied.paths.length})`;
@@ -135,7 +152,7 @@ function hasPerms(perms) {
 				name: name
 			});
 			if (result)
-				window.location.assign('/browse/' + result.path);
+				window.location.assign(URI_BASE + '/' + result.path);
 		}
 
 		async onToolbarRenameClick() {
