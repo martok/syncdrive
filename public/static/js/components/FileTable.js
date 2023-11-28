@@ -5,9 +5,9 @@ export class FileTable extends SorTable {
 	constructor(tableElement) {
 		super(tableElement);
 		this.autoSelect = true;
-		this.setColumn(0, { compare: this.sortFilenameColumn.bind(this) });
-		this.setColumn(1, { compare: this.sortDateColumn.bind(this) });
-		this.setColumn(2, { compare: this.sortFilesizeColumn.bind(this) });
+		this.setColumn(0, { compare: this.sortFilenameColumn.bind(this, 'name') });
+		this.setColumn(1, { compare: this.sortDateColumn.bind(this, 'modified') });
+		this.setColumn(2, { compare: this.sortFilesizeColumn.bind(this, 'size') });
 		this.sortBy(0);
 		for (const thumbnail of tableElement.querySelectorAll(':scope .thumbnail-container img')) {
 			UIkit.scrollspy(thumbnail);
@@ -30,35 +30,31 @@ export class FileTable extends SorTable {
 		return 0;
 	}
 
-	sortFilenameColumn(ci, left, right, asc) {
+	sortFilenameColumn(field, ci, left, right, asc) {
 		const dl = left.sortableData;
 		const dr = right.sortableData;
 		const res = this._foldersOnTop(dl, dr, asc);
 		if (res)
 			return res;
-		if (dl.name < dr.name)
-			return -1;
-		if (dr.name < dl.name)
-			return 1;
-		return 0;
+		return dl[field].localeCompare(dr[field]);
 	}
 
-	sortDateColumn(ci, left, right, asc) {
+	sortDateColumn(field, ci, left, right, asc) {
 		const dl = left.sortableData;
 		const dr = right.sortableData;
 		const res = this._foldersOnTop(dl, dr, asc);
 		if (res)
 			return res;
-		return dl.modified - dr.modified;
+		return dl[field] - dr[field];
 	}
 
-	sortFilesizeColumn(ci, left, right, asc) {
+	sortFilesizeColumn(field, ci, left, right, asc) {
 		const dl = left.sortableData;
 		const dr = right.sortableData;
 		const res = this._foldersOnTop(dl, dr, asc);
 		if (res)
 			return res;
-		return dl.size - dr.size;
+		return dl[field] - dr[field];
 	}
 
 	onThumbnailViewed(e) {
