@@ -27,15 +27,15 @@ class NodeResolver
      */
     public static function InodeStrictPath(int $inode): ?string
     {
-        if (!($node = Inodes::Find($inode, ['owner_id', 'parent_id', 'name'])))
+        if (!($node = Inodes::Find($inode, ['owner_id', 'parent_id', 'name', 'deleted'])))
             return null;
         $owner = $node->owner_id;
-        $names = [$node->name];
+        $names = [is_null($node->deleted) ? $node->name : $node->getQualifiedName()];
         while (!is_null($node->parent_id)) {
             if (!($node = Inodes::Find($node->parent_id, ['owner_id', 'parent_id', 'name'])) ||
                 $node->owner_id !== $owner)
                 return null;
-            array_unshift($names, $node->name);
+            array_unshift($names, is_null($node->deleted) ? $node->name : $node->getQualifiedName());
         }
         // the final node is the root node, which has no real name in paths regardless of what the DB says
         $names[0] = '';

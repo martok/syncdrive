@@ -217,6 +217,11 @@ class Inodes extends \Pop\Db\Record
         return isset($node->id);
     }
 
+    public function getQualifiedName(): string
+    {
+        return $this->id . ':' . $this->name;
+    }
+
     /**
      * @return FileVersions
      * @throws Exception

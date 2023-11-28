@@ -233,7 +233,7 @@ class Node implements INode, IACLTarget
 
     public function getQualifiedName(): string
     {
-        return $this->getInodeId() . ':' . $this->getName();
+        return $this->getInode()->getQualifiedName();
     }
 
     /**
