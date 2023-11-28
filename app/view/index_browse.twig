@@ -9,6 +9,9 @@
                 <i class="button-collapse uk-icon-link" uk-icon="icon: triangle-left" uk-toggle="target:.files-left; cls:uk-open"></i>
             </div>
             {% include "component/files_tree.twig" %}
+            <ul class="uk-nav uk-nav-default">
+                <li><a href="/trash"><i uk-icon="trash"></i> Deleted files</a></li>
+            </ul>
             {% include "base/_footer.twig" %}
         </div>
         <div class="files-main">

@@ -15,6 +15,7 @@ if ($app->cfg('site.maintenance')) {
         App\Controller\DavController::class,
         App\Controller\BrowseController::class,
         App\Controller\SharesController::class,
+        App\Controller\TrashController::class,
         App\Controller\NextcloudController::class,
         App\Controller\ThumbnailController::class,
     ]);
