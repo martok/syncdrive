@@ -40,14 +40,15 @@ class FileDetailBar {
 	_updateFileProperties() {
 		const file = this.currentFile;
 
-		const cell = (row) => this.infoTable.rows[row].cells[1];
+		const cell = (row) => document.getElementById('file-details-field-' + row);
 
 		this.infoTable.classList.toggle('file-deleted', !!file.deleted);
-		cell(0).innerText = formatFileSize(file.size) + (file.isFolder ? ' total' : '');
-		this._updateTimeago(cell(1).firstElementChild, file.modified);
-		cell(2).innerText = file.ownerName;
+		cell('size').innerText = formatFileSize(file.size) + (file.isFolder ? ' total' : '');
+		this._updateTimeago(cell('modified').firstElementChild, file.modified);
+		cell('owner').innerText = file.ownerName;
+		cell('perm').innerText = file.perms;
 		if (file.deleted)
-			this._updateTimeago(cell(3).firstElementChild, file.deleted);
+			this._updateTimeago(cell('deleted').firstElementChild, file.deleted);
 	}
 
 	async _updateFileVersions() {
@@ -139,9 +140,11 @@ class FileDetailBar {
 
 	setFile(fileInfo, autoCollapse=true) {
 		if (!fileInfo) {
+			this.sidebar.classList.add('forced-closed');
 			this.headerText.innerText = '';
 			this.currentFile = null;
 		} else {
+			this.sidebar.classList.remove('forced-closed');
 			this.headerText.innerText = fileInfo.name;
 			this.currentFile = fileInfo;
 			this._updateFileProperties();

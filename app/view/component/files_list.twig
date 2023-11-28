@@ -55,7 +55,6 @@
             <th>Name</th>
             <th class="uk-width-1-5">Modified</th>
             <th class="uk-width-1-6">Size</th>
-            <th class="uk-width-1-6">Permissions</th>
         </tr>
     </thead>
     <tbody>
@@ -73,7 +72,6 @@
                 </td>
                 <td>{{ timeago_element(file.modified) }}</td>
                 <td{% if file.isFolder %} class="uk-text-muted"{% endif %}>{{ file.size| filesize }}</td>
-                <td>{{ file.perms }}</td>
             </tr>
         {% endfor %}
     </tbody>

@@ -30,10 +30,16 @@
   flex-shrink: 0;
   transition: width .2s ease;
 
-  &:not(.uk-open) {
+  &:not(.uk-open), &.forced-closed {
     width: 1em !important;
     & > :not(.sidebar-header) {
       display: none !important;
+    }
+  }
+
+  &.forced-closed {
+    .button-collapse, .button-expand {
+      display: none;
     }
   }
 }

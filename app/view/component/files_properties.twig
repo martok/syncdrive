@@ -4,24 +4,22 @@
     <li id="file-details-tab-info" class="uk-open">
         <a class="uk-accordion-title" href="#">Info</a>
         <div class="uk-accordion-content">
-            <table class="uk-table" id="selected-file-properties">
-                <tr>
-                    <th class="uk-width-1-4">Size</th>
-                    <td>Size</td>
-                </tr>
-                <tr>
-                    <th>Modified</th>
-                    <td>{{ timeago_element(0) }}</td>
-                </tr>
-                <tr>
-                    <th>Owner</th>
-                    <td></td>
-                </tr>
-                <tr class="deleted-file-only">
-                    <th>Deleted at</th>
-                    <td>{{ timeago_element(0) }}</td>
-                </tr>
-            </table>
+            <dl id="selected-file-properties" class="uk-description-list uk-description-list-divider">
+                <dt>Size</dt>
+                <dd id="file-details-field-size"></dd>
+
+                <dt>Modified</dt>
+                <dd id="file-details-field-modified">{{ timeago_element(0) }}</dd>
+
+                <dt>Owner</dt>
+                <dd id="file-details-field-owner"></dd>
+
+                <dt>Permissions</dt>
+                <dd id="file-details-field-perm"></dd>
+
+                <dt class="deleted-file-only">Deleted at</dt>
+                <dd class="deleted-file-only" id="file-details-field-deleted">{{ timeago_element(0) }}</dd>
+            </dl>
         </div>
     </li>
     <li id="file-details-tab-versions">
