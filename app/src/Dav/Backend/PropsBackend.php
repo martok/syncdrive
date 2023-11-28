@@ -2,6 +2,7 @@
 
 namespace App\Dav\Backend;
 
+use App\Dav\FS\File;
 use App\Dav\FS\Node;
 use App\Model\InodeProps;
 use App\Model\Inodes;
@@ -75,6 +76,12 @@ class PropsBackend implements \Sabre\DAV\PropertyStorage\Backend\BackendInterfac
             if ($node instanceof Node) {
                 $perms = $node->getPerms();
                 return (string)$perms;
+            }
+            return '';
+        });
+        $propFind->handle('{http://owncloud.org/ns}size', function() use ($node) {
+            if ($node instanceof Node) {
+                return $node->getSize();
             }
             return '';
         });

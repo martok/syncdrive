@@ -44,6 +44,7 @@ Important to respond to those:
 
 * `{http://owncloud.org/ns}id` FileID
 * `{DAV:}getetag` also on Directory
+* `{http://owncloud.org/ns}size` File size or Directory total size with children
 * `{http://owncloud.org/ns}permissions` effective permissions + flags (shared, mountpoint)
 
 

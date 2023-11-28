@@ -15,6 +15,7 @@ class CreateInodes extends AbstractMigration
 			->varchar('name', 255)
             ->int('deleted', 16)->nullable()
             ->int('modified', 16)
+            ->int('size', 16)->defaultIs(0)
             ->varchar('etag', 255)->nullable()
             ->int('current_version_id', 16)->nullable()
             ->int('link_target', 16)->nullable()

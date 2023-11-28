@@ -276,11 +276,19 @@ class Node implements INode, IACLTarget
     }
 
     /**
-     * Implement IFile::getEtag here since the OC client needs it everywhere.
+     * Implement {@see IFile::getEtag} here since the OC client needs it everywhere.
      */
     public function getETag()
     {
         return sprintf('"%s"', $this->getInode()->etag);
+    }
+
+    /**
+     * Implement {@see IFile::getSize} here since the OC client needs it everywhere.
+     */
+    public function getSize()
+    {
+        return $this->getInode()->size;
     }
 
     public function getFileID(): string

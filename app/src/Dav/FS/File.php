@@ -72,15 +72,6 @@ class File extends Node implements IFile
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSize()
-    {
-        $this->ensureBoundVersion();
-        return $this->boundVersion->size;
-    }
-
     protected function copyTo(Directory $parent, ?string $newName): void
     {
         $parentInode = $parent->getInode(true);

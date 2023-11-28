@@ -72,7 +72,7 @@
                     {% endif %}
                 </td>
                 <td>{{ timeago_element(file.modified) }}</td>
-                <td>{% if not file.isFolder %}{{ file.size| filesize }}{% endif %}</td>
+                <td{% if file.isFolder %} class="uk-text-muted"{% endif %}>{{ file.size| filesize }}</td>
                 <td>{{ file.perms }}</td>
             </tr>
         {% endfor %}

@@ -43,7 +43,7 @@ class FileDetailBar {
 		const cell = (row) => this.infoTable.rows[row].cells[1];
 
 		this.infoTable.classList.toggle('file-deleted', !!file.deleted);
-		cell(0).innerText = file.isFolder ? '' : formatFileSize(file.size);
+		cell(0).innerText = formatFileSize(file.size) + (file.isFolder ? ' total' : '');
 		this._updateTimeago(cell(1).firstElementChild, file.modified);
 		cell(2).innerText = file.ownerName;
 		if (file.deleted)

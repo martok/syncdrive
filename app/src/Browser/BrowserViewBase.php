@@ -70,7 +70,6 @@ class BrowserViewBase
 
     protected function nodeToListing(Node $node, string $qualifiedPath): array
     {
-        $size = $node instanceof File ? $node->getSize() : 0;
         $hasChildren = $node instanceof IIndexableCollection ? $node->hasChildren() : false;
         return [
             '.' => $node,
@@ -81,7 +80,7 @@ class BrowserViewBase
             'contentType' => $node instanceof File ? $node->getContentType() ?? '' : null,
             'icon' => TreeUtil::getNodeIcon($node),
             'modified' => $node->getLastModified(),
-            'size' => $size,
+            'size' => $node->getSize(),
             'hasChildren' => $hasChildren,
             'isShared' => $node->isLink() || $node->hasShares(),
             'deleted' => $node->deletedTimestamp(),

@@ -21,6 +21,7 @@ class Inodes extends \Pop\Db\Record
      * varchar(255) name
      * int/null deleted utctime
      * int modified utctime
+     * int size
      * varchar/null etag
      * int/null current_version FileVersions
      * int/null link_target SharedInodes
@@ -45,14 +46,15 @@ class Inodes extends \Pop\Db\Record
 
     public static function Find(?int $id, ?array $columns=null): ?self
     {
+        if (is_null($id))
+            return null;
         $filter = null;
         if (!is_null($columns)) {
             if (!in_array('id', $columns))
                 $columns[] = 'id';
             $filter = ['select' => $columns];
         }
-        if (!is_null($id) &&
-            ($node = Inodes::findOne(['id' => $id], $filter)) &&
+        if (($node = Inodes::findOne(['id' => $id], $filter)) &&
             !is_null($node->id))
             return $node;
         return null;
@@ -78,10 +80,10 @@ class Inodes extends \Pop\Db\Record
     public function save(array $columns = null): void
     {
         $dirty = $this->getDirty();
-        $etagChanged = ($dirty['new']['etag'] ?? '') !== ($dirty['old']['etag'] ?? '');
+        $metaChanged = $this->isMetadataChanged($dirty['old'], $dirty['new']);
         parent::save($columns);
         // cascade changes up the tree so that the client can detect modified files
-        if ($etagChanged) {
+        if ($metaChanged) {
             $containers = [$this->parent_id];
             // cascade into shares, needed for Nextcloud client sync
             foreach (InodeShares::findBy(['inode_id' => $this->id]) as $share) {
@@ -100,7 +102,7 @@ class Inodes extends \Pop\Db\Record
     public function contentChanged(bool $save = false): void
     {
         $this->modified = time();
-        $this->etag = $this->computeEtag();
+        $this->updateMetadata();
         if ($save)
             $this->save();
     }
@@ -130,39 +132,54 @@ class Inodes extends \Pop\Db\Record
     }
 
     /**
-     * Compute the currently valid Etag for this file.
-     * Assumes that all relevant child elements have been updated and saved.
-     *
-     * @return string the etag value
-     * @throws Exception
+     * Assuming all child nodes have up-to-date metadata, recompute the stored values for this node.
      */
-    public function computeEtag(): string
+    private function updateMetadata(): void
     {
         if (is_null($this->id)) {
-            // if the Inode hasn't been saved yet, the etag is meaningless and all we need is something
-            // to detect a change later
-            return sha1(implode($this->toArray()));
+            // if the Inode hasn't been saved yet:
+            //  * the etag is meaningless and all we need is something to detect a change later
+            //  * the size is zero since there can be no child nodes or associated FileVersions
+            $newEtag = sha1(implode($this->toArray()));
+            $newSize = 0;
+        } else {
+            switch ($this->type) {
+                case self::TYPE_COLLECTION:
+                    // for folders, etag is derived from the set of non-deleted children and their names
+                    $childNodes = Inodes::findBy(['parent_id' => $this->id, 'deleted' => null]);
+                    $newSize = 0;
+                    $childInfos = [];
+                    foreach ($childNodes as $child) {
+                        $childInfos[] = sprintf('%s:%s', $child->etag, (string)$child->name);
+                        $newSize += $child->size;
+                    }
+                    sort($childInfos);
+                    $newEtag = sha1(sprintf('%d:%s', $this->id, implode(':', $childInfos)));
+                    break;
+                case self::TYPE_FILE:
+                    // for files, etag is derived from the storage object
+                    $current = $this->getCurrentVersion();
+                    $newSize = $current->size;
+                    $newEtag = sha1(sprintf('%d:%d:%s', $this->id, $current->size, $current->object_id));
+                    break;
+                case self::TYPE_INTERNAL_SHARE:
+                    // shared objects change etag with their targets and with changes to permissions
+                    $li = $this->getLinkInfo();
+                    $newSize = $li['target']->size;
+                    $newEtag = sha1(sprintf('%s:%s', $li['target']->etag, $li['permissions']));
+                    break;
+                default:
+                    throw new Exception("Unknown inode type: $this->type");
+            }
         }
-        switch ($this->type) {
-            case self::TYPE_COLLECTION:
-                // for folders, etag is derived from the set of non-deleted children
-                // assumes the child etag has already been updated and saved (bubble up)
-                $children = [];
-                foreach(Inodes::findBy(['parent_id' => $this->id, 'deleted' => null]) as $child) {
-                    $children[] = sprintf('%s:%s', $child->etag, (string)$child->name);
-                }
-                sort($children);
-                return sha1(sprintf('%d:%s', $this->id, implode(':', $children)));
-            case self::TYPE_FILE:
-                // for files, etag is derived from the storage object
-                $current = $this->getCurrentVersion();
-                return sha1(sprintf('%d:%d:%s', $this->id, $current->size, $current->object_id));
-            case self::TYPE_INTERNAL_SHARE:
-                // shared objects change etag with their targets and with changes to permissions
-                $li = $this->getLinkInfo();
-                return sha1(sprintf('%s:%s', $li['target']->etag, $li['permissions']));
-        }
-        throw new Exception("Unknown inode type: $this->type");
+
+        $this->etag = $newEtag;
+        $this->size = $newSize;
+    }
+
+    private function isMetadataChanged(array $old, array $new): bool
+    {
+        return (($old['etag'] ?? '') !== ($new['etag'] ?? '')) && (($old['size'] ?? '') !== ($new['size'] ?? ''));
     }
 
     public function getChildren(bool $includeDeleted=false): array
