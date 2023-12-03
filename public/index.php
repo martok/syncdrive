@@ -20,6 +20,8 @@ if ($app->cfg('site.maintenance')) {
         App\Controller\ThumbnailController::class,
     ]);
 
-    $app->tasks->run(100);
+    if ($app->cfg('tasks.runMode') === 'request') {
+        app_run_tasks($app);
+    }
 }
 $app->run();

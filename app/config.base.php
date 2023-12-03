@@ -46,4 +46,10 @@ return [
             [256, 256]
         ],
     ],
+    'tasks' => [
+        // 'request' or 'cron' or 'webcron'
+        'runMode' => 'request',
+        'maxRunTime' => 100,
+        'webtoken' => '123456789',
+    ],
 ];
