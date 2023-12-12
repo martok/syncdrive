@@ -1,8 +1,6 @@
 [submodule "3rdparty/pop-db"]
 	path = 3rdparty/pop-db
-	url = https://github.com/popphp/pop-db.git
+	url = https://github.com/martok/pop-db-contrib.git
 [submodule "3rdparty/nepf2"]
 	path = 3rdparty/nepf2
 	url = https://github.com/martok/nepf2.git
-[submodule "pop-db/"]
-	branch = v6-dev
