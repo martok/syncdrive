@@ -1,4 +1,11 @@
 <?php
+/**
+ * SyncDrive - shared bootstrap
+ *
+ * @link       https://github.com/martok/syncdrive
+ * @copyright  Copyright (c) 2023- Martok & Contributors.
+ * @license    Apache License
+ */
 
 define('REPO_ROOT', realpath(__DIR__ . '/../'));
 
