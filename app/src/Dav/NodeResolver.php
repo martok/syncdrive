@@ -6,6 +6,7 @@ use App\Dav\FS\Node;
 use App\Model\Inodes;
 use App\Model\InodeShares;
 use App\Model\Users;
+use Nepf2\Util\Arr;
 use Nepf2\Util\Path;
 use Sabre\DAV\Exception\NotFound;
 use Sabre\DAV\INode;
@@ -97,7 +98,7 @@ class NodeResolver
             // is this node shared anywhere?
             $sharedAs = self::$inodeSharedCache[$inode] ??=
                 InodeShares::findBy(['inode_id' => $inode])->toArray(['column' => 'id']);
-            $sharesInHierarchy = array_unique(array_merge($sharesInHierarchy, $sharedAs), SORT_NUMERIC);
+            $sharesInHierarchy = Arr::Union($sharesInHierarchy, $sharedAs);
 
             // continue up the main tree
             $inode = $parent ?? 0;
