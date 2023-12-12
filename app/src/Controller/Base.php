@@ -63,7 +63,7 @@ class Base
         $site = $this->app->cfg('site');
         $view->set('site', [
             'title' => $site['title'],
-            'owner' => $site['owner'],
+            'byline' => $site['byline'],
         ]);
 
         $messages = [];

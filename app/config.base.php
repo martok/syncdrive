@@ -18,9 +18,9 @@ return [
         'path' => 'data/blob',
     ],
     'site' => [
-        'title' => 'My Storage Platform',
-        'owner' => 'ACME Corp.',
-        'maintenance' => false,
+        'title' => 'SyncDrive',
+        'byline' => '© 2023 Martok',
+        'maintenance' => true,
         'readonly' => false,
     ],
     'files' => [

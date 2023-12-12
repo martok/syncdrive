@@ -27,7 +27,7 @@ class StaticMaintenance
         $site = $this->app->cfg('site');
         $view->set('site', [
             'title' => $site['title'],
-            'owner' => $site['owner'],
+            'byline' => $site['byline'],
         ]);
         $res->setBody($view->render());
     }
