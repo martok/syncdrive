@@ -13,7 +13,7 @@
         "php": ">=8.2.0",
         "martok/nepf2": "dev-main",
         "popphp/pop-db": "@dev",
-        "sabre/dav": "dev-master",
+        "sabre/dav": "^4.6",
         "elephox/mimey": "^4.0",
         "ext-dom": "*",
         "imagine/imagine": "^1.3",
