@@ -1,7 +1,7 @@
-@import '_uikit-theme.scss';
-@import '_sortable.scss';
-@import '_sidebars.scss';
-@import '_layout.scss';
+@import 'uikit-theme';
+@import 'sortable';
+@import 'sidebars';
+@import 'layout';
 
 
 div.toolbar {
@@ -143,7 +143,7 @@ div.data-row {
   }
 
   .files-main {
-    @import '_files-table.scss';
+    @import 'files-table';
   }
 
   .files-right {
@@ -176,5 +176,5 @@ div.data-row {
 }
 
 .files-share {
-  @import '_files-table.scss';
+  @import 'files-table';
 }
