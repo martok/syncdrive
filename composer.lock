@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "93b4f1440280e6c8342bcc13bbff8e66",
+    "content-hash": "e87936669030a385a3ce5e95ed4191d3",
     "packages": [
         {
             "name": "elephox/mimey",
@@ -170,12 +170,12 @@
             "dist": {
                 "type": "path",
                 "url": "3rdparty/nepf2",
-                "reference": "e3a9e760bea37b490b073b08a12f31fb83115f6e"
+                "reference": "3d1217e075eb6a3f4658bb7e2f2852f8356604c9"
             },
             "require": {
                 "monolog/monolog": "^3.4",
                 "php": ">=8.2.0",
-                "popphp/pop-db": "6.0.x-dev",
+                "popphp/pop-db": "^6.5",
                 "psr/log": "^3.0",
                 "sabre/http": ">=5.0",
                 "sabre/uri": ">=2.0",
@@ -303,11 +303,11 @@
         },
         {
             "name": "popphp/pop-db",
-            "version": "dev-master",
+            "version": "6.5.0",
             "dist": {
                 "type": "path",
                 "url": "3rdparty/pop-db",
-                "reference": "3c3a9a4d151d6df797f8a737d54f2d90dd07c855"
+                "reference": "606a8bac57014f5966c1e15581b0d2c769484e05"
             },
             "require": {
                 "ext-mysqli": "*",
@@ -324,7 +324,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "6.0.x-dev"
+                    "dev-master": "6.5.x-dev"
                 }
             },
             "autoload": {
@@ -378,18 +378,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/popphp/pop-debug.git",
-                "reference": "0ad2e570c0646a52f7097ce014584dc61c69b240"
+                "reference": "57e0e83033c4a7ff9ad408db1d27551b967eb11c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/popphp/pop-debug/zipball/0ad2e570c0646a52f7097ce014584dc61c69b240",
-                "reference": "0ad2e570c0646a52f7097ce014584dc61c69b240",
+                "url": "https://api.github.com/repos/popphp/pop-debug/zipball/57e0e83033c4a7ff9ad408db1d27551b967eb11c",
+                "reference": "57e0e83033c4a7ff9ad408db1d27551b967eb11c",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1.0",
-                "popphp/pop-db": "^6.0.0",
-                "popphp/pop-http": "^5.0.0",
+                "popphp/pop-db": "^6.5.0",
+                "popphp/pop-http": "^5.0.2",
                 "popphp/pop-session": "^4.0.0"
             },
             "require-dev": {
@@ -430,7 +430,7 @@
                 "issues": "https://github.com/popphp/pop-debug/issues",
                 "source": "https://github.com/popphp/pop-debug/tree/2.0.0"
             },
-            "time": "2023-11-09T04:38:59+00:00"
+            "time": "2023-12-18T17:26:59+00:00"
         },
         {
             "name": "popphp/pop-filter",
@@ -1553,8 +1553,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "martok/nepf2": 20,
-        "popphp/pop-db": 20
+        "martok/nepf2": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

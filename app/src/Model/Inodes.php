@@ -84,11 +84,11 @@ class Inodes extends \Pop\Db\Record
             $parentNode->contentChanged(save:true);
     }
 
-    public function save(array $columns = null): void
+    public function save(array $columns = null, bool $commit = true): void
     {
         $dirty = $this->getDirty();
         $metaChanged = $this->isMetadataChanged($dirty['old'], $dirty['new']);
-        parent::save($columns);
+        parent::save($columns, $commit);
         // cascade changes up the tree so that the client can detect modified files
         if ($metaChanged) {
             $containers = [$this->parent_id];
