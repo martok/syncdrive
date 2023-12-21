@@ -20,4 +20,14 @@ readonly class ObjectInfo
     )
     {
     }
+
+    public function withName(string $object): static {
+        return new static(
+            $object,
+            $this->size,
+            $this->hash,
+            $this->chunkSize,
+            $this->checksums
+        );
+    }
 }

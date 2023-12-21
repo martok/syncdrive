@@ -35,6 +35,14 @@ class FileBackend implements IStorageBackend
     /**
      * @inheritDoc
      */
+    public function objectExists(string $object): bool
+    {
+        return is_file($this->getFileName($object, 0));
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function openReader(string $object): mixed
     {
         $reader = new FileReader($this, $object);
@@ -45,41 +53,9 @@ class FileBackend implements IStorageBackend
     /**
      * @inheritDoc
      */
-    public function openTempWriter(): IObjectWriter
+    public function openWriter(string $object): IObjectWriter
     {
-        return new FileWriter($this, $this->getTemporaryName());
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function removeTemporary(IObjectWriter $writer): void
-    {
-        assert($writer instanceof FileWriter);
-        $this->removeObject($writer->name);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function makePermanent(ObjectInfo $info, IObjectWriter $writer): void
-    {
-        assert($writer instanceof FileWriter);
-        for ($i=0;;$i++) {
-            $sname = $this->getFileName($writer->name, $i);
-            if (is_file($sname)) {
-                $dname = $this->getFileName($info->object, $i);
-                // if the file already exists, assume it is the same and just discard the new one
-                if (is_file($dname))
-                    unlink($sname);
-                else {
-                    $this->makeParentDirs($dname);
-                    rename($sname, $dname);
-                }
-            } else {
-                break;
-            }
-        }
+        return new FileWriter($this, $object);
     }
 
     /**
@@ -105,18 +81,37 @@ class FileBackend implements IStorageBackend
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function moveObject(string $source, string $dest): bool
+    {
+        $movedAny = false;
+        for ($i=0;;$i++) {
+            $sname = $this->getFileName($source, $i);
+            if (is_file($sname)) {
+                $dname = $this->getFileName($dest, $i);
+                // if the file already exists, assume it is the same and just discard the new one
+                if (is_file($dname))
+                    unlink($sname);
+                else {
+                    $this->makeParentDirs($dname);
+                    rename($sname, $dname);
+                }
+                $movedAny = true;
+            } else {
+                break;
+            }
+        }
+        return $movedAny;
+    }
+
     public function getFileName(string $object, int $chunkIndex): string
     {
         $chunkExt = str_pad(dechex($chunkIndex), 3, '0', STR_PAD_LEFT);
         $pathFile = substr($object, 0, 3) . DIRECTORY_SEPARATOR . substr($object, 3);
         // subdir by 3 hex chars = 4096 directories; also aligns nicely with tmp_ from getTemporaryName
         return Path::ExpandRelative($this->path, $pathFile . '.' . $chunkExt);
-    }
-
-    public function getTemporaryName(): string
-    {
-        $seed = date('r') . microtime();
-        return 'tmp_' . hash(ObjectStorage::OBJECT_HASH_ALG, $seed);
     }
 
     public function makeParentDirs(string $file): void

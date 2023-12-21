@@ -29,7 +29,6 @@ class StreamObjectWriter extends StreamProtocol
     {
         $this->writer = $writer;
         $this->chunkSize = $chunkSize;
-        $allowed = hash_algos();
         foreach ($hashAlgos as $alg) {
             try {
                 $this->hashes[$alg] = hash_init($alg, 0, '');
@@ -63,6 +62,7 @@ class StreamObjectWriter extends StreamProtocol
     {
         foreach (array_keys($this->hashes) as $alg)
             $this->hashes[$alg] = hash_final($this->hashes[$alg], false);
+        $this->writer->close();
         $this->stream = null;
     }
 

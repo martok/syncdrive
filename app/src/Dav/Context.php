@@ -39,17 +39,19 @@ class Context
     {
         $storageCfg = $this->app->cfg('storage');
 
-        $backendClass = $storageCfg['class'];
-        if (!ClassUtil::IsClass($backendClass) ||
-            !ClassUtil::ImplementsInterface($backendClass, IStorageBackend::class)) {
-            throw new \App\Exception("Configured storage class {$storageCfg['class']} not found or invalid!");
-        }
-
-        $backend = new $backendClass($this->app, $storageCfg);
-
-        $this->storage = new ObjectStorage($backend);
+        $this->storage = new ObjectStorage();
         $this->storage->setChunkSize(ini_parse_quantity($storageCfg['chunkSize'] ?? '1M'));
         $this->storage->setChecksumOCAlgos($storageCfg['checksums']);
+
+        foreach ($storageCfg['backends'] as $backendsCfg) {
+            $backendClass = $backendsCfg['class'];
+            if (!ClassUtil::IsClass($backendClass) ||
+                !ClassUtil::ImplementsInterface($backendClass, IStorageBackend::class)) {
+                throw new \App\Exception("Configured storage class {$backendsCfg['class']} not found or invalid!");
+            }
+            $backend = new $backendClass($this->app, $backendsCfg['config']);
+            $this->storage->addBackend($backend, $backendsCfg['intent']);
+        }
     }
 
     private function createFilesView(): Tree

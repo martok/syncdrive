@@ -10,6 +10,7 @@
 namespace App\ObjectStorage\FileBackend;
 
 use App\ObjectStorage\IObjectWriter;
+use App\ObjectStorage\IStorageBackend;
 
 class FileWriter implements IObjectWriter
 {
@@ -42,5 +43,31 @@ class FileWriter implements IObjectWriter
     public function write(string $data): int
     {
         return fwrite($this->currChunk, $data, strlen($data));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function close(): void
+    {
+        if (!is_null($this->currChunk)) {
+            fclose($this->currChunk);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getObject(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getBackend(): IStorageBackend
+    {
+        return $this->backend;
     }
 }

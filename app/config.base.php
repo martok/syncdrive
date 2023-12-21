@@ -13,9 +13,16 @@ return [
 	],
     'storage' => [
         'checksums' => ['SHA1'],
-        'class' => 'App\ObjectStorage\FileBackend\FileBackend',
         'chunkSize' => '64M',
-        'path' => 'data/blob',
+        'backends' => [
+            [
+                'intent' => ['temporary', 'storage'],
+                'class' => 'App\ObjectStorage\FileBackend\FileBackend',
+                'config' => [
+                    'path' => 'data/blob',
+                ],
+            ],
+        ],
     ],
     'site' => [
         'title' => 'SyncDrive',

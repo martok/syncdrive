@@ -25,7 +25,14 @@ class ObjectStorage
     const CHUNK_SIZE_DEFAULT = 64 << 20;
     const CHUNK_SIZE_MIN = 1 << 10;
 
-    private IStorageBackend $backend;
+    const INTENT_STORAGE = 1 << 1;
+    const INTENT_TEMPORARY = 1 << 2;
+    const BACKEND_INTENTS = [
+        'storage' => self::INTENT_STORAGE,
+        'temporary' => self::INTENT_TEMPORARY,
+    ];
+
+    private array $backends;
     private int $chunkSize = self::CHUNK_SIZE_DEFAULT;
     private array $checksumOCAlgos = [];
 
@@ -36,9 +43,9 @@ class ObjectStorage
                Thumbnails::getTotal(['object' => $object]);
     }
 
-    public function __construct(IStorageBackend $backend)
+    public function __construct()
     {
-        $this->backend = $backend;
+        $this->backends = [];
     }
 
     public function setChunkSize(int $chunkSize): void
@@ -55,29 +62,137 @@ class ObjectStorage
         $this->checksumOCAlgos = $algos;
     }
 
+    public function addBackend(IStorageBackend $backend, array $intents): void
+    {
+        $intentInt = 0;
+        foreach ($intents as $intent) {
+            if (!isset(self::BACKEND_INTENTS[$intent]))
+                throw new Exception('Invalid backend intent: ' . $intent);
+            $intentInt |= self::BACKEND_INTENTS[$intent];
+        }
+        $this->backends[] = [$intentInt, $backend];
+    }
+
+    private function getTempWriter(): IObjectWriter
+    {
+        /**
+         * @var int $intent
+         * @var IStorageBackend $backend
+         */
+        foreach ($this->backends as [$intent, $backend]) {
+            if ($intent & self::INTENT_TEMPORARY) {
+                $tmpName = $this->generateTempIdent();
+                return $backend->openWriter($tmpName);
+            }
+        }
+        throw new Exception('No storage backend for temporary files configured');
+    }
+
+    private function getReader(string $object): mixed
+    {
+        /**
+         * @var int $intent
+         * @var IStorageBackend $backend
+         */
+        foreach ($this->backends as [$intent, $backend]) {
+            if ($backend->objectExists($object))
+                return $backend->openReader($object);
+        }
+        return null;
+    }
+
+    private function moveObject(string $source, string $dest): bool
+    {
+        $sourceBack = null;
+        $destBack = null;
+        /**
+         * @var int $intent
+         * @var IStorageBackend $backend
+         */
+        foreach ($this->backends as [$intent, $backend]) {
+            if ($backend->objectExists($source)) {
+                $sourceBack = $backend;
+                break;
+            }
+        }
+        if (is_null($sourceBack))
+            throw new Exception('Source file not found');
+        foreach ($this->backends as [$intent, $backend]) {
+            if ($intent & self::INTENT_STORAGE) {
+                $destBack = $backend;
+                break;
+            }
+        }
+        if (is_null($destBack))
+            throw new Exception('No storage backend for files configured');
+
+        if ($destBack === $sourceBack) {
+            // fast path: in the same backend, we can often use renames
+            if ($sourceBack->moveObject($source, $dest))
+                return true;
+        }
+
+        // if the fast path is not available or not successful, copy and remove the source
+        $reader = $sourceBack->openReader($source);
+        $wrapWriter = new StreamObjectWriter($destBack->openWriter($dest), $this->chunkSize, []);
+        $copied = Stream::CopyToStream($reader, $wrapWriter->getStream());
+        fclose($reader);
+        fclose($wrapWriter->getStream());
+        if ($copied > 0) {
+            // must have copied more than for an EMPTY_OBJECT
+            return $sourceBack->removeObject($source);
+        }
+        return false;
+    }
+
+    private function removeObject(string $object): int
+    {
+        $count = 0;
+        /**
+         * @var int $intent
+         * @var IStorageBackend $backend
+         */
+        foreach ($this->backends as [$intent, $backend]) {
+            if ($backend->removeObject($object))
+                $count++;
+        }
+        return $count;
+    }
+
+
     private function internalStore(callable $writeMethod): ObjectInfo
     {
-        $writer = $this->backend->openTempWriter();
-        $hashWriter = new StreamObjectWriter($writer, $this->chunkSize, array_merge([self::OBJECT_HASH_ALG],
-                                             TransferChecksums::OC2php($this->checksumOCAlgos)));
-        $writeMethod($hashWriter);
-        $size = ftell($hashWriter->getStream());
-        fclose($hashWriter->getStream());
+        $writer = $this->getTempWriter();
+        try {
+            $hashWriter = new StreamObjectWriter($writer, $this->chunkSize, array_merge([self::OBJECT_HASH_ALG],
+                TransferChecksums::OC2php($this->checksumOCAlgos)));
+            $writeMethod($hashWriter);
+            $size = ftell($hashWriter->getStream());
+            fclose($hashWriter->getStream());
 
-        $objectHash = $hashWriter->getHash();
-        $objectChecksums = [];
-        foreach ($this->checksumOCAlgos as $algo) {
-            $objectChecksums[$algo] = $hashWriter->getHash(TransferChecksums::OC2php($algo));
+            $objectHash = $hashWriter->getHash();
+            $objectChecksums = [];
+            foreach ($this->checksumOCAlgos as $algo) {
+                $objectChecksums[$algo] = $hashWriter->getHash(TransferChecksums::OC2php($algo));
+            }
+            $info = new ObjectInfo(self::EMPTY_OBJECT, $size, $objectHash, $this->chunkSize, $objectChecksums);
+            if ($size === 0) {
+                $writer->getBackend()->removeObject($writer->getObject());
+            } else {
+                $persistentName = $this->generateObjectIdent($info);
+                if (!$this->moveObject($writer->getObject(), $persistentName))
+                    throw new Exception('Failed to move file from temporary to storage');
+                $info = $info->withName($persistentName);
+            }
+            return $info;
+        } catch (\Exception $e) {
+            // in case of errors, make sure the temp file is removed
+            $backend = $writer->getBackend();
+            $object = $writer->getObject();
+            @fclose($hashWriter->getStream());
+            $backend->removeObject($object);
+            throw $e;
         }
-        $info = new ObjectInfo(self::EMPTY_OBJECT, $size, $objectHash, $this->chunkSize, $objectChecksums);
-        if ($size === 0) {
-            $this->backend->removeTemporary($writer);
-        } else {
-            $persistentName = $this->generateObjectIdent($info);
-            $info = new ObjectInfo($persistentName, $size, $objectHash, $this->chunkSize, $objectChecksums);
-            $this->backend->makePermanent($info, $writer);
-        }
-        return $info;
     }
 
     /**
@@ -120,7 +235,7 @@ class ObjectStorage
      */
     public function openReader(string $object): mixed
     {
-        $reader = $this->backend->openReader($object);
+        $reader = $this->getReader($object);
         assert(is_null($reader) || Stream::IsStream($reader));
         return $reader;
     }
@@ -140,10 +255,16 @@ class ObjectStorage
             return true;
         if (self::CountObjectUsers($object) > 1)
             return true;
-        if ($result = $this->backend->removeObject($object)) {
+        if ($result = ($this->removeObject($object) > 0)) {
             $result = $result && ThumbnailService::RemoveObjectThumbnails($this, $object);
         }
         return $result;
+    }
+
+    private function generateTempIdent(): string
+    {
+        $seed = date('r') . microtime();
+        return 'tmp_' . hash(self::OBJECT_HASH_ALG, $seed);
     }
 
     private function generateObjectIdent(ObjectInfo $info): string
