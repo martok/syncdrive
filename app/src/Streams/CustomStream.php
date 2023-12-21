@@ -87,7 +87,6 @@ class CustomStream extends StreamProtocol
 
     public function stream_read(int $count): string|false
     {
-        $md = stream_get_meta_data($this->resource);
         return $this->delegate->stream_read($count);
     }
 

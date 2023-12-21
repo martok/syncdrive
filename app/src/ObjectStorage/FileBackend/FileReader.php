@@ -49,7 +49,7 @@ class FileReader extends StreamProtocol
     public function stream_read(int $count): string|false
     {
         if ($this->eof)
-            return false;
+            return '';
         $readBlocks = [];
         $readbytes = 0;
         while ($readbytes < $count && !$this->eof) {

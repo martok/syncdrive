@@ -139,6 +139,7 @@ import {FileTable} from "../components/FileTable.js";
 			// for public shares, just encode the token and take auth from the interactive session
 			url.username = (typeof SHARE_TOKEN !== "undefined") ? SHARE_TOKEN : '';
 			url.password = '-';
+			url.search = '';
 			return url.href;
 		}
 
