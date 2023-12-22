@@ -164,8 +164,10 @@ import {FileTable} from "../components/FileTable.js";
 				parent: BROWSE_PATH,
 				name: name
 			});
-			if (result)
-				window.location.assign(URI_BASE + '/' + result.path);
+			if (result) {
+				const newBrowseUrl = URI_BASE + '/' + result.path;
+				window.location.assign(newBrowseUrl.replace(/\/{2,}/, '/'));
+			}
 		}
 
 		async onToolbarRenameClick() {
