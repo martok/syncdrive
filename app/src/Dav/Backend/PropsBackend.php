@@ -35,6 +35,7 @@ class PropsBackend implements \Sabre\DAV\PropertyStorage\Backend\BackendInterfac
     ];
 
     private const PROP_MS_MTIME = '{urn:schemas-microsoft-com:}Win32LastModifiedTime';
+    private const PROP_MS_MTIME_FORMAT = 'D, d M Y H:i:s T';
 
     const VT_STRING = 1;
     const VT_XML = 2;
@@ -100,7 +101,9 @@ class PropsBackend implements \Sabre\DAV\PropertyStorage\Backend\BackendInterfac
         });
         $propFind->handle(self::PROP_MS_MTIME, function() use ($node) {
             if ($node instanceof Node) {
-                return $node->getLastModified();
+                $stamp = $node->getLastModified();
+                $dt = new \DateTimeImmutable('@'.$stamp);
+                return $dt->format(self::PROP_MS_MTIME_FORMAT);
             }
             return null;
         });
@@ -148,7 +151,7 @@ class PropsBackend implements \Sabre\DAV\PropertyStorage\Backend\BackendInterfac
             if (is_null($stamp)) {
                 $newTime = time();
             } else {
-                if (false!== ($newTime = \DateTimeImmutable::createFromFormat('D, d M Y H:i:s T', $stamp)))
+                if (false!== ($newTime = \DateTimeImmutable::createFromFormat(self::PROP_MS_MTIME_FORMAT, $stamp)))
                     $newTime = $newTime->getTimestamp();
             }
             if ($newTime) {
