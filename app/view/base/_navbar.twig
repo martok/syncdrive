@@ -27,7 +27,9 @@
                     </div>
                 </li>
                 {% else %}
-                    <li><a href="/user/signup">Sign Up</a></li>
+                    {% if allow_signup %}
+                        <li><a href="/user/signup">Sign Up</a></li>
+                    {% endif %}
                     <li><a href="/user/login">Login</a></li>
                 {% endif %}
             </ul>

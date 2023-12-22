@@ -53,6 +53,11 @@ class Base
         return $this->session->started() && isset($this->session->userid);
     }
 
+    protected function isSignupEnabled(): bool
+    {
+        return $this->app->cfg('site.registration') && !$this->app->cfg('site.readonly');
+    }
+
     /**
      * @param string $name
      * @return TemplateView
@@ -73,10 +78,13 @@ class Base
         $view->set('notifications', $messages);
 
         if ($this->isLoggedIn()) {
+            $view->set('allow_signup', false);
             $view->set('user', [
                 'id' => $this->session->user->id,
                 'name' => $this->session->user->username,
             ]);
+        } else {
+            $view->set('allow_signup', $this->isSignupEnabled());
         }
         return $view;
     }

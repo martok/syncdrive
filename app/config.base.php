@@ -29,6 +29,7 @@ return [
         'byline' => '© 2023 Martok',
         'maintenance' => true,
         'readonly' => false,
+        'registration' => true,
     ],
     'files' => [
         'trash_days' => 7,

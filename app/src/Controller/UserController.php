@@ -84,7 +84,7 @@ class UserController extends Base
     public function signupForm(Response $res, Request $req)
     {
         // Validate session: not logged in
-        if ($this->isLoggedIn()) {
+        if ($this->isLoggedIn() || !$this->isSignupEnabled()) {
             $res->redirect('/');
             return;
         }
@@ -96,7 +96,7 @@ class UserController extends Base
     public function signup(Response $res, Request $req)
     {
         // Validate session: not logged in
-        if ($this->isLoggedIn()) {
+        if ($this->isLoggedIn() || !$this->isSignupEnabled()) {
             $res->redirect('/');
             return;
         }
