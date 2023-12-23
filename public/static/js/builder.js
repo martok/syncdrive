@@ -8,6 +8,9 @@ function filterAttributes(tagName, attributes) {
 	};
 
 	switch (tagName) {
+		case 'BUTTON':
+			booleanPresence('disabled');
+			break;
 		case 'INPUT':
 			booleanPresence('checked');
 			break;

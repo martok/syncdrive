@@ -60,16 +60,19 @@ import {FileTable} from "../components/FileTable.js";
 				btn.addEventListener('click', this.onToolbarNewFolderClick.bind(this));
 				btn.disabled = false;
 			}
-			document.getElementById('action-rename').addEventListener('click', this.onToolbarRenameClick.bind(this));
 
 			this.onSelectionChanged();
 		}
 
-		updateToolbarForSelection(selected) {
+		updateToolbarForSelection(selected, focusedFile) {
 			const newButtons = [];
 			if (selected.length) {
 				newButtons.push(UKButton([UKIcon('close'), `(${selected.length} selected)`],
 					{title: 'Clear selection', onclick: this.onToolbarClearSelectionClick.bind(this)}));
+				const canRename = focusedFile && !focusedFile.deleted && focusedFile.perms.includes('N');
+				newButtons.push(UKButton([UKIcon('pencil')],
+					{title: 'Rename file', onclick: this.onToolbarRenameClick.bind(this),
+							 disabled: !canRename}));
 				newButtons.push(UKButton([UKIcon('copy')],
 					{title: 'Copy files', onclick: this.onToolbarCopyMoveClick.bind(this, 'copy')}));
 				newButtons.push(UKButton([UKIcon('move')],
@@ -95,9 +98,7 @@ import {FileTable} from "../components/FileTable.js";
 			const focused = this.fileTable.getFocusedRow();
 			const isSelected = Array.prototype.includes.call(selected, focused);
 			const file = isSelected ? focused.sortableData : null;
-			const canRename = isSelected && !file.deleted && file.perms.includes('N');
-			document.getElementById('action-rename').disabled = !canRename;
-			this.updateToolbarForSelection(selected);
+			this.updateToolbarForSelection(selected, file);
 			if (this.fileDetails)
 				this.fileDetails.setFile(file);
 		}
