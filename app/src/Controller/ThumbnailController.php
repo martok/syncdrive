@@ -29,16 +29,8 @@ class ThumbnailController extends Base
     const IMAGE_CACHE = 365*24*3600;
 
     #[Auto\Route('/index.php/core/preview', method: 'GET')]
-    public function userdav(Response $res, Request $req)
+    public function preview(Response $res, Request $req)
     {
-        $identity = new Identity($this->app->cfg('site.title'));
-        if (!$identity->initSession($this->session) && !$identity->initApp($req, $res)) {
-            $identity->sendChallenge($req, $res);
-            return;
-        }
-
-        $context = new Context($this->app, $identity);
-
         try {
             $fileId = $req->int('fileId');
             $dimX = $req->int('x');
@@ -48,7 +40,32 @@ class ThumbnailController extends Base
             return;
         }
 
-        if (!NodeResolver::InodeVisibleIn($fileId, $context->getFilesRootInode()->id)) {
+        // access to a file by id can be given by:
+        //  - app login (file manager thumbnail)
+        //  - session login (browser)
+        //  - share login, anonymous share use (share)
+
+        $identity = new Identity($this->app->cfg('site.title'));
+        if ($token = $req->str('share')) {
+            // if the client tells us we're looking at a share, test *only* that.
+            $share = InodeShares::findOne(['token' => $token]);
+            if (is_null($share->id)) {
+                $res->standardResponse(404);
+                return;
+            }
+            if (!$identity->initShare($this->session, $share, null, false)) {
+                $res->standardResponse(403);
+                return;
+            }
+        } else {
+            if (!$identity->initSession($this->session) && !$identity->initApp($req, $res)) {
+                $res->standardResponse(403);
+                return;
+            }
+        }
+
+        $context = new Context($this->app, $identity);
+        if (!$context->canAccessInode($fileId)) {
             $res->standardResponse(403);
             return;
         }

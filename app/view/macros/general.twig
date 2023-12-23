@@ -2,3 +2,9 @@
 {% macro timeago_element(time) %}
     <time class="timeago" datetime="{{ time|date('c') }}">{{ time|date('c')}}</time>
 {% endmacro %}
+
+{% macro opt_query(value, field, before='&') -%}
+    {%- if value -%}
+        {{- before|raw }}{{ field|e('html_attr') }}={{ value|e('html_attr') -}}
+    {%- endif -%}
+{%- endmacro %}

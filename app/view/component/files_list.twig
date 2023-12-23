@@ -1,4 +1,4 @@
-{% from "macros/general.twig" import timeago_element %}
+{% from "macros/general.twig" import timeago_element, opt_query %}
 
 <div class="uk-clearfix">
     <!-- Breadcrumbs -->
@@ -66,7 +66,7 @@
                     {%- if file.isShared %} <i uk-icon="link"></i>{% endif -%}
                     {% if not file.isFolder %}
                         <div class="thumbnail-container">
-                            <img data-src="/index.php/core/preview?fileId={{ file.id }}&x=256&y=256">
+                            <img data-src="/index.php/core/preview?fileId={{ file.id }}&x=256&y=256{{ opt_query(exports.SHARE_TOKEN, 'share') }}">
                         </div>
                     {% endif %}
                 </td>

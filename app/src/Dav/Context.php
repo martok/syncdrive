@@ -84,18 +84,6 @@ class Context
         return $this->filesView ??= $this->createFilesView();
     }
 
-    public function getFilesRootInode(): ?Inodes
-    {
-        switch ($this->identity->type) {
-            case Identity::TYPE_USER:
-                return $this->identity->user->root();
-
-            case Identity::TYPE_UNAUTHENTICATED:
-            default:
-                return null;
-        }
-    }
-
     public function getNode(string $uri, bool $disallowRoot=true): ?Node
     {
         $tree = $this->getFilesView();
@@ -109,6 +97,22 @@ class Context
             return $node;
         } catch (Exception\NotFound) {
             return null;
+        }
+    }
+
+    public function canAccessInode(int $inodeId): bool
+    {
+        switch ($this->identity->type) {
+            case Identity::TYPE_USER:
+                return NodeResolver::InodeVisibleIn($inodeId, $this->identity->user->root()->id);
+            case Identity::TYPE_SHARE:
+                $share = $this->identity->share;
+                return NodeResolver::InodeVisibleIn($inodeId, $share->inode_id);
+            case Identity::TYPE_UNAUTHENTICATED:
+            default:
+                // A file accessible via any public shared folder should also return true for anonymous access, but
+                // checking that is potentially extremely complex.
+                return false;
         }
     }
 
