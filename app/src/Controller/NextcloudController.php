@@ -133,7 +133,7 @@ class NextcloudController extends Base
         }
 
         LoginTokens::Expire();
-        list($loginBase) = Path::Pop($req->getAbsoluteUrl());
+        list($loginBase) = Path::Pop($req->getRequestUrl());
         $token = LoginTokens::New($req->getHeader('User-Agent') ?? 'Unknown App', version: 1);
         // redirect into login v2 flow, which will recognize v1 by the versioned poll_token
         $res->redirect(implode('/', [$loginBase, 'v2', 'flow', $token->login_token]));
@@ -143,12 +143,12 @@ class NextcloudController extends Base
     public function login_v2(Response $res, Request $req)
     {
         LoginTokens::Expire();
-        list($loginBase) = Path::Pop($req->getAbsoluteUrl());
+        list($loginBase) = Path::Pop($req->getRequestUrl());
         $token = LoginTokens::New($req->getHeader('User-Agent') ?? 'Unknown App');
         $res->setJSON([
             'poll' => [
                 'token' => $token->poll_token,
-                'endpoint' => implode('/', [$loginBase , 'poll']),
+                'endpoint' => implode('/', [$loginBase, 'v2', 'poll']),
             ],
             'login' => implode('/', [$loginBase, 'v2', 'flow', $token->login_token]),
         ]);
@@ -167,7 +167,7 @@ class NextcloudController extends Base
 
         // if there is no user currently logged in, note this token, redirect to login and then come back
         if (!$this->isLoggedIn()) {
-            $this->session->login_flow_redirect = $req->getAbsoluteUrl();
+            $this->session->login_flow_redirect = $req->getRequestUrl();
             $res->redirect('/user/login');
             return;
         }
@@ -191,10 +191,8 @@ class NextcloudController extends Base
                     if ($token->isV1Token()) {
                         // V1 flow (android)
                         $token->delete();
-                        $serverUrl = $req->getAbsoluteUrl();
-                        $serverUrl = substr($serverUrl, 0, strpos($serverUrl, '/index.php/login/'));
                         $credURL = sprintf('nc://login/server:%s&user:%s&password:%s',
-                                           $serverUrl,
+                                           $req->getRequestBase(),
                                            urlencode($ap->login_name),
                                            urlencode($generatedPassword));
                         $res->redirect($credURL);
@@ -212,7 +210,7 @@ class NextcloudController extends Base
         }
 
         $view = $this->initTemplateView('user_login_flow.twig');
-        $view->set('flowUri', $req->getAbsoluteUrl());
+        $view->set('flowUri', $req->getRequestUrl());
         $view->set('response', $responseMac);
         $view->set('userAgent', $token->user_agent);
         $res->setBody($view->render());
@@ -226,7 +224,7 @@ class NextcloudController extends Base
         $token = LoginTokens::findOne(['poll_token' => $pollToken, 'login_name-'=> null]);
         if (!is_null($token->id)) {
             $res->setJSON([
-                'server' => $req->getAbsoluteBase(),
+                'server' => $req->getRequestBase(),
                 'loginName' => $token->login_name,
                 'appPassword' => $token->app_password,
             ]);
