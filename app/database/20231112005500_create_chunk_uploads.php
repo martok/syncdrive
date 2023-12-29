@@ -8,19 +8,19 @@ class CreateChunkedUploads extends AbstractMigration
     {
 		$schema = $this->db->createSchema();
 		$schema->create('chunked_uploads')
-			->int('id', 16)->increment()
+            ->int('id')->increment()
             ->varchar('transfer_id', 255)
-            ->int('started', 16)
-            ->int('num_parts', 16)->nullable()
-            ->int('total_length', 16)->nullable()
+            ->bigInt('started')
+            ->int('num_parts')->nullable()
+            ->bigInt('total_length')->nullable()
 			->primary('id')
             ->unique('transfer_id');
 
         $schema->create('chunked_upload_parts')
-            ->int('id', 16)->increment()
-            ->int('upload_id', 16)
+            ->int('id')->increment()
+            ->int('upload_id')
             ->varchar('part', 255)
-            ->int('size', 16)
+            ->bigInt('size')
             ->varchar('object', 255)
             ->primary('id')
             ->unique(['upload_id','part']);

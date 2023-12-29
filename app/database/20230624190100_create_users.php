@@ -8,7 +8,7 @@ class CreateUsers extends AbstractMigration
     {
 		$schema = $this->db->createSchema();
 		$schema->create('users')
-			->int('id', 16)->increment()
+			->int('id')->increment()
 			->varchar('username', 255)
 			->varchar('password', 255)
 			->primary('id');

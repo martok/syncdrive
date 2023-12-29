@@ -8,10 +8,10 @@ class CreateShares extends AbstractMigration
     {
 		$schema = $this->db->createSchema();
         $schema->create('inode_shares')
-            ->int('id', 16)->increment()
-            ->int('inode_id', 16)
-            ->int('sharer_id', 16)->nullable()
-            ->int('modified', 16)
+            ->int('id')->increment()
+            ->int('inode_id')
+            ->int('sharer_id')->nullable()
+            ->bigInt('modified')
             ->varchar('permissions', 255)
             ->varchar('token', 255)->nullable()
             ->varchar('password', 255)->nullable()

@@ -8,8 +8,8 @@ class CreateAppAuth extends AbstractMigration
     {
 		$schema = $this->db->createSchema();
         $schema->create('login_tokens')
-            ->int('id', 16)->increment()
-            ->int('created', 16)
+            ->int('id')->increment()
+            ->bigInt('created')
             ->varchar('user_agent', 255)
             ->varchar('poll_token', 255)
             ->varchar('login_token', 255)
@@ -20,13 +20,13 @@ class CreateAppAuth extends AbstractMigration
             ->unique('poll_token');
 
         $schema->create('app_passwords')
-            ->int('id', 16)->increment()
-            ->int('created', 16)
-            ->int('last_used', 16)->nullable()
+            ->int('id')->increment()
+            ->bigInt('created')
+            ->bigInt('last_used')->nullable()
             ->varchar('user_agent', 255)
             ->varchar('login_name', 255)
             ->varchar('password', 255)
-            ->int('user_id', 16)
+            ->int('user_id')
             ->primary('id')
             ->unique(['login_name', 'password']);
 

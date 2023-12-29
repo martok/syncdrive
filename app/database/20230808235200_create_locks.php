@@ -8,13 +8,13 @@ class CreateLocks extends AbstractMigration
     {
 		$schema = $this->db->createSchema();
         $schema->create('inode_locks')
-            ->int('id', 16)->increment()
-            ->int('inode_id', 16)
+            ->int('id')->increment()
+            ->int('inode_id')
             ->varchar('token', 255)
-            ->int('created', 16)
-            ->int('expires', 16)
-            ->int('depth', 8)
-            ->int('scope', 8)
+            ->bigInt('created')
+            ->bigInt('expires')
+            ->tinyInt('depth')
+            ->tinyInt('scope')
             ->varchar('owner', 255)
             ->primary('id')
             ->unique('token');

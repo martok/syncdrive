@@ -8,10 +8,10 @@ class CreateThumbnails extends AbstractMigration
     {
 		$schema = $this->db->createSchema();
 		$schema->create('thumbnails')
-			->int('id', 16)->increment()
+            ->int('id')->increment()
             ->varchar('for_object', 255)
-            ->int('width', 16)
-            ->int('height', 16)
+            ->tinyInt('width')
+            ->tinyInt('height')
             ->varchar('content_type', 255)
             ->varchar('object', 255)
 			->primary('id')
@@ -19,7 +19,6 @@ class CreateThumbnails extends AbstractMigration
             ->index('width', 'thumbnails_by_width')
             ->index('height', 'thumbnails_by_height')
             ->index('object', 'thumbnails_by_object');
-
 
         $schema->execute();
 	}
