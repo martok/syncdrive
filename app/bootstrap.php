@@ -23,6 +23,31 @@ function app_run_tasks(\Nepf2\Application $app): void
     $app->tasks->run($app->cfg('tasks.maxRunTime'));
 }
 
+function app_run_migrations(\Nepf2\Application $app): void
+{
+    /** @var \Nepf2\Database\Migrator $migrator */
+    $migrator = $app->db->migrator();
+
+    if (0 == count($migrator->pendingMigrations())) {
+        // nothing to do
+        return;
+    }
+
+    $lockfile = $app->expandPath('data/db_migration.lock');
+    $lock = fopen($lockfile, 'w+');
+    try {
+        if (!$lock || !flock($lock, LOCK_EX | LOCK_NB, $blocked)) {
+            // file error or another process already has the lock, don't continue
+            die('Database upgrade in progress');
+        }
+        // holding the lock, run migrations
+        $migrator->runAll();
+    } finally {
+        // also releases held locks
+        fclose($lock);
+    }
+}
+
 $app = new Nepf2\Application();
 $app->setRoot(REPO_ROOT);
 $cfg = $app->mergeConfigs([
@@ -45,8 +70,6 @@ $app->addComponent(\Nepf2\Template\Template::class, config: [
 	'templates' => 'app/view',
 ]);
 
-/** @var \Nepf2\Database\Migrator $migrator */
-$migrator = $app->db->migrator();
-$migrator->runAll();
+app_run_migrations($app);
 
 return $app;
