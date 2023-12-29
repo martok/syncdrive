@@ -65,6 +65,10 @@ class DavController extends Base
             $identity->sendChallenge($req, $res);
             return;
         }
+
+        // release session file lock
+        $this->session->closeWrite();
+
         $context = new Context($this->app, $identity);
         $server = new ServerAdapter($context->getFilesView(), $req, $res);
         if ($identity->type == Identity::TYPE_UNAUTHENTICATED) {
@@ -103,6 +107,9 @@ class DavController extends Base
             $basic->requireLogin();
             return;
         }
+
+        // release session file lock
+        $this->session->closeWrite();
 
         // setup and launch server
         $context = new Context($this->app, $identity);

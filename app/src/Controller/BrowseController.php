@@ -35,6 +35,9 @@ class BrowseController extends Base
         if (in_array(($opt = $req->str('view')), BrowserMain::VIEW_STYLES))
             $this->session->browserView = $opt;
 
+        // release session file lock
+        $this->session->closeWrite();
+
         $browser = new BrowserMain($this, $req, $res);
         if (is_null($requestedItem = $browser->initRequestedItem($context, $path))) {
             $res->standardResponse(404);

@@ -143,7 +143,7 @@ class Identity
 
     public function initSession(Session $session): bool
     {
-        if ($session->started() && isset($session->userid)) {
+        if ($session->isBound() && isset($session->userid)) {
             $this->type = self::TYPE_USER;
             $this->user = $session->user;
             return true;
@@ -159,7 +159,7 @@ class Identity
             goto auth_success;
 
         // session-stored auth only works if there is a session
-        if ($session->started()) {
+        if ($session->isActive()) {
             if (!isset($session->publicLogins))
                 $session->publicLogins = [];
             $saved = &$session->publicLogins;
@@ -171,14 +171,14 @@ class Identity
                     goto auth_failure;
                 // if the login was successful, store it in a way that invalidates if the password is changed
                 $saved[$share->token] = $share->password;
-                $session->resetCookie();
+                $session->refreshCookie();
                 goto auth_success;
             }
 
             // passwords on session override HTTP (allows token:dummy@host for BrowserViews that can upload)
             if (isset($saved[$share->token])) {
                 if ($saved[$share->token] === $share->password) {
-                    $session->resetCookie();
+                    $session->refreshCookie();
                     goto auth_success;
                 }
                 // if we have one saved, but the share's password changed, delete and fall through to Basic HTTP

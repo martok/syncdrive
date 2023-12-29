@@ -40,7 +40,7 @@ class Base
                 $this->session->user = $user;
                 $this->session->userid = $user->id;
                 // Every time we do anything authenticated, also extend the cookie lifetime
-                $this->session->resetCookie();
+                $this->session->refreshCookie();
                 return;
             }
         }
@@ -50,7 +50,7 @@ class Base
 
     public function isLoggedIn(): bool
     {
-        return $this->session->started() && isset($this->session->userid);
+        return $this->session->isBound() && isset($this->session->userid);
     }
 
     protected function isSignupEnabled(): bool
