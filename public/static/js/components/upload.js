@@ -1,4 +1,4 @@
-import {EB} from "../builder.js";
+import {EB, UKButton} from "../builder.js";
 import {formatFileSize} from "../formatting.js";
 import {EventSubTrait} from "../mixin.js";
 
@@ -49,6 +49,7 @@ class Uploader {
 	constructor(progressContainer) {
 		this._concurrent = 1;
 		this._removeStatusTimeout = 10000;
+		this._progressUpdateInterval = 500;
 		this._processTimer = 0;
 		this._index = 0;
 		this.queue = [];
@@ -67,7 +68,7 @@ class Uploader {
 		if (this._processTimer) {
 			return;
 		}
-		setInterval(this._processQueue.bind(this), 100);
+		this._processTimer = setInterval(this._processQueue.bind(this), 100);
 	}
 
 	_queueFinished() {
@@ -99,27 +100,53 @@ class Uploader {
 			xhr: new XMLHttpRequest(),
 			totalBytes: 0,
 			transferredBytes: 0,
+			transferTimestamp: (new Date()).getTime(),
+			statusTimestamp: 0,
+			avgSpeed: 0.0,
 			ctrl: {}
 		};
 		// setup UI
-		uploadState.ctrl.wrapper = EB('div', {$: 'upload-wrapper upload-running'},
-			uploadState.ctrl.name = EB('span', {$: 'upload-name'}, task.file.name),
-			uploadState.ctrl.progress = EB('progress', {$: 'uk-progress'}),
-			uploadState.ctrl.progresstext = EB('span', {$: 'upload-info'}, 'Starting...'),
+		uploadState.ctrl.wrapper = EB('div', {$: 'upload-wrapper upload-running data-row'},
+			EB('div',
+				uploadState.ctrl.name = EB('div', {$: 'upload-name'}, task.file.name),
+				uploadState.ctrl.progress = EB('progress', {$: 'uk-progress'}),
+				uploadState.ctrl.progresstext = EB('div', {$: 'uk-text-small'}, 'Starting...'),
+			),
+			uploadState.ctrl.btnStop = EB('button', {$: 'data-column-shrink uk-button uk-button-small', 'uk-icon': 'close',
+													 title: 'Cancel upload',
+													 onclick: () => uploadState.xhr.abort()}),
 		);
-		uploadState.xhr.addEventListener('progress', (e) => {
-			if (e.lengthComputable) {
-				uploadState.totalBytes = e.total;
-				uploadState.transferredBytes = e.loaded;
-				uploadState.ctrl.progress.max = e.total;
-				uploadState.ctrl.progress.value = e.loaded;
-				uploadState.ctrl.progresstext.innerText = formatFileSize(e.loaded) + '/' + formatFileSize(e.total);
-			}
-		});
-		uploadState.xhr.addEventListener('load', this._uploadFinished.bind(this, uploadState));
-		uploadState.xhr.addEventListener('error', this._uploadFinished.bind(this, uploadState));
 		uploadState.xhr.withCredentials = true;
 		uploadState.xhr.open(task.method, task.url);
+		uploadState.xhr.upload.addEventListener('progress', (e) => {
+			if (e.lengthComputable) {
+				uploadState.totalBytes = e.total;
+				const time = (new Date()).getTime();
+				const incrTime = time - uploadState.transferTimestamp;
+				if (incrTime < this._progressUpdateInterval)
+					return;
+
+				const incrBytes = e.loaded - uploadState.transferredBytes;
+				const currSpeed = incrBytes / incrTime * 1000;
+				// On the initial update or on large changes jump, otherwise use smoothing
+				if ((uploadState.avgSpeed < 0.01) ||
+					(Math.abs(uploadState.avgSpeed - currSpeed) / Math.max(uploadState.avgSpeed, currSpeed) > 0.2)) {
+					uploadState.avgSpeed = currSpeed;
+				} else {
+					uploadState.avgSpeed = uploadState.avgSpeed * 0.8 + 0.2 * currSpeed;
+				}
+				uploadState.transferredBytes = e.loaded;
+				uploadState.transferTimestamp = time;
+				uploadState.ctrl.progress.max = e.total;
+				uploadState.ctrl.progress.value = e.loaded;
+				uploadState.ctrl.progresstext.innerText = formatFileSize(e.loaded) + '/' + formatFileSize(e.total) +
+					' @ ' + formatFileSize(uploadState.avgSpeed) + '/s';
+				uploadState.statusTimestamp = time;
+			}
+		});
+		uploadState.xhr.upload.addEventListener('load', this._uploadFinished.bind(this, uploadState));
+		uploadState.xhr.upload.addEventListener('error', this._uploadFinished.bind(this, uploadState));
+		uploadState.xhr.upload.addEventListener('abort', this._uploadFinished.bind(this, uploadState));
 
 		switch(task.method) {
 			case 'PUT':
@@ -138,22 +165,28 @@ class Uploader {
 
 	_uploadFinished(uploadState, event) {
 		this.runningUploads.delete(uploadState.index);
+		uploadState.ctrl.btnStop.style.visibility = 'hidden';
 		uploadState.ctrl.progress.max = 1;
 		uploadState.ctrl.progress.value = 1;
-		if (event.type === 'load') {
-			if (uploadState.xhr.status < 300) {
-				this._uploadSuccess(uploadState);
-			} else {
-				this._uploadFailure(uploadState, `HTTP ${uploadState.xhr.status}`);
-			}
-		} else {
-			this._uploadFailure(uploadState, event.type);
+		switch (event.type) {
+			case 'load':
+				if (uploadState.xhr.status < 300) {
+					this._uploadSuccess(uploadState, true);
+				} else {
+					this._uploadFailure(uploadState, `HTTP ${uploadState.xhr.status}`);
+				}
+				break;
+			case 'abort':
+				this._uploadSuccess(uploadState, false);
+				break;
+			default:
+				this._uploadFailure(uploadState, event.type);
 		}
 	}
 
-	_uploadSuccess(uploadState) {
+	_uploadSuccess(uploadState, completed) {
 		uploadState.ctrl.wrapper.classList.replace('upload-running', 'upload-finished');
-		uploadState.ctrl.progresstext.innerText = 'Done.';
+		uploadState.ctrl.progresstext.innerText = completed ? 'Done' : 'Cancelled';
 		setTimeout(() => {
 			$(uploadState.ctrl.wrapper).fadeOut('slow', () => {
 				this.progressContainer.removeChild(uploadState.ctrl.wrapper);

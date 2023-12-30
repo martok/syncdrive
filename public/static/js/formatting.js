@@ -10,7 +10,7 @@ function formatFileSize(size) {
 		if (size < unit * 1.1) continue;
 		return (size / unit).toFixed(2) + ' ' + val;
 	}
-	return size + ' Bytes';
+	return size.toFixed(0) + ' Bytes';
 }
 
 export {

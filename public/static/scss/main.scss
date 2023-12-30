@@ -55,6 +55,7 @@ div.data-row {
   > * {
     flex-grow: 1;
     flex-basis: content;
+    min-width: 1px;
   }
 
   > .data-column-shrink {
@@ -91,16 +92,39 @@ div.data-row {
 }
 
 #upload-status {
-  padding: 6px;
+  margin-left: 0;
+
   .upload-wrapper {
+    padding-left: 0;
+    column-gap: 0;
+
+    .upload-name {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .uk-progress {
+      margin: 0;
+    }
     &.upload-finished progress {
       @include progress-bar-color($color-text-success);
     }
     &.upload-failed progress {
       @include progress-bar-color($color-text-danger);
     }
-    .uk-progress {
-      margin: 0;
+
+    .uk-text-small {
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .uk-button {
+      padding: 0;
+      margin-right: 6px;
+      /* limits for flex, setting width directly does not work */
+      min-width: 20px;
+      max-width: 20px;
     }
   }
 }

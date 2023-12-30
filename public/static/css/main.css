@@ -271,6 +271,7 @@ div.data-row {
 div.data-row > * {
   flex-grow: 1;
   flex-basis: content;
+  min-width: 1px;
 }
 div.data-row > .data-column-shrink {
   flex-grow: 0;
@@ -293,7 +294,19 @@ div.data-row.data-column-center {
 }
 
 #upload-status {
-  padding: 6px;
+  margin-left: 0;
+}
+#upload-status .upload-wrapper {
+  padding-left: 0;
+  column-gap: 0;
+}
+#upload-status .upload-wrapper .upload-name {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+#upload-status .upload-wrapper .uk-progress {
+  margin: 0;
 }
 #upload-status .upload-wrapper.upload-finished progress {
   color: #32d296;
@@ -313,8 +326,16 @@ div.data-row.data-column-center {
 #upload-status .upload-wrapper.upload-failed progress::-moz-progress-bar {
   background-color: #f0506e !important;
 }
-#upload-status .upload-wrapper .uk-progress {
-  margin: 0;
+#upload-status .upload-wrapper .uk-text-small {
+  white-space: nowrap;
+  overflow: visible;
+}
+#upload-status .upload-wrapper .uk-button {
+  padding: 0;
+  margin-right: 6px;
+  /* limits for flex, setting width directly does not work */
+  min-width: 20px;
+  max-width: 20px;
 }
 
 .file-browser-frame {
