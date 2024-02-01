@@ -106,7 +106,7 @@ class SharesController extends Base
             return;
         }
 
-        $browser->initServer();
+        $browser->initServer($this->app->getLogChannel('DAV'));
 
         if ($requestedItem instanceof IIndexableCollection) {
             $localState = $this->initShareState($token);

@@ -23,6 +23,7 @@ use App\Model\Users;
 use Nepf2\Request;
 use Nepf2\Response;
 use Nepf2\Util\Path;
+use Psr\Log\LoggerInterface;
 use Sabre\DAV\Exception\NotFound;
 use Sabre\DAV\Tree;
 
@@ -57,10 +58,13 @@ class BrowserViewBase
         }
     }
 
-    public function initServer(): ServerAdapter
+    public function initServer(LoggerInterface $logger): ServerAdapter
     {
         $this->server = new ServerAdapter($this->tree, $this->request, $this->response);
         TreeUtil::setupServer($this->server, $this->uriBase);
+        $this->server->on('exception', function(\Throwable $ex) use ($logger) {
+            $logger->critical('Error in request handling', ['exception' => $ex]);
+        });
         return $this->server;
     }
 

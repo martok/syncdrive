@@ -76,6 +76,10 @@ class DavController extends Base
         } else {
             $context->setupStorage();
             TreeUtil::setupServer($server, TreeUtil::requestBaseUri($req, $path));
+            $logger = $this->app->getLogChannel('DAV');
+            $server->on('exception', function(\Throwable $ex) use ($logger) {
+                $logger->critical('Error in User request', ['exception' => $ex]);
+            });
             $server->addPlugin(new DAV\Browser\Plugin());
             $server->start();
         }
@@ -117,6 +121,10 @@ class DavController extends Base
         $server = new ServerAdapter($context->getFilesView(), $req, $res);
         $context->setupStorage();
         TreeUtil::setupServer($server, TreeUtil::requestBaseUri($req, $path));
+        $logger = $this->app->getLogChannel('DAV');
+        $server->on('exception', function(\Throwable $ex) use ($logger) {
+            $logger->critical('Error in Share request', ['exception' => $ex]);
+        });
         $server->start();
         // Report that Sabre already sent the response
         return false;

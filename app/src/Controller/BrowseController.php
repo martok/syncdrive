@@ -45,7 +45,7 @@ class BrowseController extends Base
             return;
         }
 
-        $server = $browser->initServer();
+        $server = $browser->initServer($this->app->getLogChannel('DAV'));
 
         if ($requestedItem instanceof File &&
             ($verid = $req->int('version')) && ($ts = $req->int('ts'))) {
