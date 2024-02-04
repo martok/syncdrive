@@ -10,6 +10,8 @@ use BackblazeB2\Exceptions\B2Exception;
 use BackblazeB2\File;
 use Nepf2\Application;
 use Nepf2\Util\Arr;
+use Nepf2\Util\Path;
+use Nepf2\Util\Random;
 
 class B2Backend implements IStorageBackend
 {
@@ -17,6 +19,8 @@ class B2Backend implements IStorageBackend
     private Client $client;
     private string $bucketName;
     private string $bucketId;
+    private int $cacheMaxSize;
+    private string $cachePath;
 
     public function __construct(Application $app, array $config)
     {
@@ -25,11 +29,17 @@ class B2Backend implements IStorageBackend
             'applicationKey' => '',
             'bucketName' => '',
             'bucketId' => '',
+            'cache' => [
+                'maxSize' => '0',
+                'path' => 'data/b2cache',
+            ]
         ], $config);
         $this->logger = $app->getLogChannel('B2');
         $this->client = new LoggingClient($this->logger, $config['keyId'], $config['applicationKey']);
         $this->bucketName = $config['bucketName'];
         $this->bucketId = $config['bucketId'];
+        $this->cacheMaxSize = ini_parse_quantity($config['cache']['maxSize']);
+        $this->cachePath = $app->expandPath($config['cache']['path']);
     }
 
     /**
@@ -155,14 +165,90 @@ class B2Backend implements IStorageBackend
         }
     }
 
-    public function doDownload(File $file): string
+    private function cacheLookup(File $file, ?string &$data): bool
     {
+        if (!$this->cacheMaxSize)
+            return false;
+        $key = sprintf('%s_%08x', $file->getHash(), $file->getUploadTimestamp() & 0xffff_ffff);
+        $cfile = Path::ExpandRelative($this->cachePath, $key);
+        if (file_exists($cfile) &&
+            ($fp = fopen($cfile, "rb"))) {
+            flock($fp, LOCK_SH);
+            touch($cfile);
+            $data = stream_get_contents($fp);
+            fclose($fp);
+            return true;
+        }
+        return false;
+    }
+
+    private function cacheExpire(int $spaceRequired): void
+    {
+        if (!$this->cacheMaxSize)
+            return;
+
+        if (!is_dir($this->cachePath))
+            return;
+        $files = [];
+        $total = 0;
+        foreach (scandir($this->cachePath, SCANDIR_SORT_NONE) as $file) {
+            $file = Path::ExpandRelative($this->cachePath, $file);
+            if (is_file($file)) {
+                $total += filesize($file);
+                $files[] = $file;
+            }
+        }
+
+        if ($this->cacheMaxSize - $total >= $spaceRequired)
+            return;
+
+        // sort most recently touched to top
+        usort($files, function(string $a, string $b) {
+            $t1 = filemtime($a) || 0;
+            $t2 = filemtime($b) || 0;
+            return $t2 - $t1;
+        });
+
+        // remove from bottom until enough space is created
+        while (($this->cacheMaxSize - $total < $spaceRequired) && count($files)) {
+            $remove = array_pop($files);
+            $total -= filesize($remove);
+            unlink($remove);
+        }
+    }
+
+    private function cacheStore(File $file, string &$data): bool
+    {
+        if (!$this->cacheMaxSize)
+            return false;
+        $key = sprintf('%s_%08x', $file->getHash(), $file->getUploadTimestamp() & 0xffff_ffff);
+        $cfile = Path::ExpandRelative($this->cachePath, $key);
+        if (file_exists($cfile))
+            return true;
+
+        $this->cacheExpire($file->getSize());
+
+        if (!is_dir($this->cachePath))
+            mkdir($this->cachePath, recursive: true);
+        $newf = $cfile . '.' . Random::TokenStr();
+        file_put_contents($newf, $data);
+        if (!rename($newf, $cfile))
+            unlink($newf);
+        return true;
+    }
+
+    public function doDownload(File $file, bool $skipCache = false): string
+    {
+        if (!$skipCache && ($this->cacheLookup($file, $data)))
+            return $data;
         try {
-            return $this->client->download([
+            $data = $this->client->download([
                 'BucketId' => $this->bucketId,
                 'BucketName' => $this->bucketName,
                 'FileId' => $file->getId()
             ]);
+            $this->cacheStore($file, $data);
+            return $data;
         } catch (B2Exception $ex) {
             $this->logger->error('B2 failed doDownload', ['exception' => $ex]);
             throw $ex;
