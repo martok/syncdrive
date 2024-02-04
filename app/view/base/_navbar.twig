@@ -8,6 +8,9 @@
                     {% if user.name %}
                     <li><a href="/shares">Shares</a></li>
                     {% endif %}
+                    {% if user.admin %}
+                        <li><a href="/admin">Admin</a></li>
+                    {% endif %}
                 {% endif %}
             </ul>
         </div>

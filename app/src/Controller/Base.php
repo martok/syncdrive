@@ -58,6 +58,11 @@ class Base
         return $this->app->cfg('site.registration') && !$this->app->cfg('site.readonly');
     }
 
+    protected function isCurrentUserAdmin(): bool
+    {
+        return $this->isLoggedIn() && in_array($this->session->user->id, $this->app->cfg('site.adminUsers'));
+    }
+
     /**
      * @param string $name
      * @return TemplateView
@@ -82,6 +87,7 @@ class Base
             $view->set('user', [
                 'id' => $this->session->user->id,
                 'name' => $this->session->user->username,
+                'admin' => $this->isCurrentUserAdmin(),
             ]);
         } else {
             $view->set('allow_signup', $this->isSignupEnabled());

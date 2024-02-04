@@ -30,6 +30,7 @@ return [
         'maintenance' => true,
         'readonly' => false,
         'registration' => true,
+        'adminUsers' => [],
     ],
     'files' => [
         'trash_days' => 7,

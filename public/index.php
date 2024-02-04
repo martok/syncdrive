@@ -26,6 +26,7 @@ if ($app->cfg('site.maintenance')) {
         App\Controller\TrashController::class,
         App\Controller\NextcloudController::class,
         App\Controller\ThumbnailController::class,
+        App\Controller\AdminController::class,
     ]);
 
     if ($app->cfg('tasks.runMode') === 'request') {

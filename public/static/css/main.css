@@ -228,6 +228,10 @@ footer {
   align-items: center;
 }
 
+details summary {
+  cursor: pointer;
+}
+
 div.toolbar {
   display: inline-flex;
   flex-wrap: nowrap;
@@ -526,6 +530,80 @@ div.data-row.data-column-center {
 }
 .files-share #file-list-table.view-tiled td:last-of-type {
   display: none;
+}
+
+.admin-phpinfo {
+  overflow-x: auto;
+}
+.admin-phpinfo pre {
+  margin: 0;
+  font-family: monospace;
+}
+.admin-phpinfo a:link {
+  color: #009;
+  text-decoration: none;
+  background-color: #fff;
+}
+.admin-phpinfo a:hover {
+  text-decoration: underline;
+}
+.admin-phpinfo table {
+  border-collapse: collapse;
+  border: 0;
+  width: 100%;
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.2);
+}
+.admin-phpinfo td, .admin-phpinfo th {
+  border: 1px solid #666;
+  font-size: 75%;
+  vertical-align: baseline;
+  padding: 4px 5px;
+}
+.admin-phpinfo th {
+  position: sticky;
+  top: 0;
+  background: inherit;
+}
+.admin-phpinfo h1 {
+  font-size: 150%;
+}
+.admin-phpinfo h2 {
+  font-size: 125%;
+}
+.admin-phpinfo h2 a:link, .admin-phpinfo h2 a:visited {
+  color: inherit;
+  background: inherit;
+}
+.admin-phpinfo .p {
+  text-align: left;
+}
+.admin-phpinfo .e {
+  background-color: #ccf;
+  width: 300px;
+  font-weight: bold;
+}
+.admin-phpinfo .h {
+  background-color: #99c;
+  font-weight: bold;
+}
+.admin-phpinfo .v {
+  background-color: #ddd;
+  max-width: 300px;
+  overflow-x: auto;
+  word-wrap: break-word;
+}
+.admin-phpinfo .v i {
+  color: #999;
+}
+.admin-phpinfo img {
+  float: right;
+  border: 0;
+}
+.admin-phpinfo hr {
+  width: 934px;
+  background-color: #ccc;
+  border: 0;
+  height: 1px;
 }
 
 /*# sourceMappingURL=main.css.map */
