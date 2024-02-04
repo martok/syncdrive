@@ -8,6 +8,7 @@ use App\Streams\CustomStream;
 use BackblazeB2\Client;
 use BackblazeB2\Exceptions\B2Exception;
 use BackblazeB2\File;
+use GuzzleHttp\Exception\ClientException;
 use Nepf2\Application;
 use Nepf2\Util\Arr;
 use Nepf2\Util\Path;
@@ -53,7 +54,7 @@ class B2Backend implements IStorageBackend
                 'BucketName' => $this->bucketName,
                 'FileName' => $this->getFileName($object, 0)
             ]);
-        } catch (B2Exception $ex) {
+        } catch (B2Exception|ClientException $ex) {
             $this->logger->error('B2 failed fileExists', ['exception' => $ex]);
             throw $ex;
         }
@@ -140,7 +141,7 @@ class B2Backend implements IStorageBackend
                 'Body' => $data,
                 'FileContentType' => 'application/octet-stream'
             ]);
-        } catch (B2Exception $ex) {
+        } catch (B2Exception|ClientException $ex) {
             $this->logger->error('B2 failed doUpload', ['exception' => $ex]);
             throw $ex;
         }
@@ -159,7 +160,7 @@ class B2Backend implements IStorageBackend
                 'Prefix' => $object . '/',
                 'Delimiter' => '/',
             ]);
-        } catch (B2Exception $ex) {
+        } catch (B2Exception|ClientException $ex) {
             $this->logger->error('B2 failed doGetFileParts', ['exception' => $ex]);
             throw $ex;
         }
@@ -249,7 +250,8 @@ class B2Backend implements IStorageBackend
             ]);
             $this->cacheStore($file, $data);
             return $data;
-        } catch (B2Exception $ex) {
+        } catch (B2Exception|ClientException $ex) {
+            // Failing with a ClientException here is most likely quota exceeded
             $this->logger->error('B2 failed doDownload', ['exception' => $ex]);
             throw $ex;
         }
@@ -264,7 +266,7 @@ class B2Backend implements IStorageBackend
                 'FileName' => $file->getName(),
                 'FileId' => $file->getId(),
             ]);
-        } catch (B2Exception $ex) {
+        } catch (B2Exception|ClientException $ex) {
             $this->logger->error('B2 failed deleteFile', ['exception' => $ex]);
             throw $ex;
         }
@@ -280,7 +282,7 @@ class B2Backend implements IStorageBackend
                 'sourceFileId' => $file->getId(),
                 'fileName' => $newName,
             ]);
-        } catch (B2Exception $ex) {
+        } catch (B2Exception|ClientException $ex) {
             $this->logger->error('B2 failed copy', ['exception' => $ex]);
             throw $ex;
         }
