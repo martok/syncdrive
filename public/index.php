@@ -16,6 +16,8 @@ if ($app->cfg('site.maintenance')) {
         App\Controller\StaticMaintenance::class,
     ]);
 } else {
+    app_php_config($app);
+
     $app->router->addControllers([
         App\Controller\IndexController::class,
         App\Controller\UserController::class,
