@@ -4,16 +4,16 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateChunkedUploads extends AbstractMigration
 {
-	public function up(): void
+    public function up(): void
     {
-		$schema = $this->db->createSchema();
-		$schema->create('chunked_uploads')
+        $schema = $this->db->createSchema();
+        $schema->create('chunked_uploads')
             ->int('id')->increment()
             ->varchar('transfer_id', 255)
             ->bigInt('started')
             ->int('num_parts')->nullable()
             ->bigInt('total_length')->nullable()
-			->primary('id')
+            ->primary('id')
             ->unique('transfer_id');
 
         $schema->create('chunked_upload_parts')
@@ -26,13 +26,13 @@ class CreateChunkedUploads extends AbstractMigration
             ->unique(['upload_id','part']);
 
         $schema->execute();
-	}
+    }
 
-	public function down(): void
+    public function down(): void
     {
-		$schema = $this->db->createSchema();
-		$schema->drop('chunked_uploads');
-		$schema->drop('chunked_upload_parts');
+        $schema = $this->db->createSchema();
+        $schema->drop('chunked_uploads');
+        $schema->drop('chunked_upload_parts');
         $schema->execute();
-	}
+    }
 }

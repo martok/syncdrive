@@ -1,54 +1,54 @@
 
 {% macro sortInv(letter, current) -%}
-	{%- if letter|upper == current|upper -%}
-		{%- if letter in 'nms' -%}
-			{{- letter|upper -}}
-		{%- else -%}
-			{{- letter|lower -}}
-		{%- endif -%}
-	{%- else -%}
-		{{- letter -}}
-	{%- endif -%}
+    {%- if letter|upper == current|upper -%}
+        {%- if letter in 'nms' -%}
+            {{- letter|upper -}}
+        {%- else -%}
+            {{- letter|lower -}}
+        {%- endif -%}
+    {%- else -%}
+        {{- letter -}}
+    {%- endif -%}
 {%- endmacro %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head><title>{{ title }}</title>
-	<style type="text/css">
-		a, a:active {text-decoration: none; color: blue;}
-		a:visited {color: #48468F;}
-		a:hover, a:focus {text-decoration: underline; color: red;}
-		body {background-color: #F5F5F5;}
-		h2 {margin-bottom: 12px;}
-		table {margin-left: 12px;}
-		th, td { font: 90% monospace; text-align: left;}
-		th { font-weight: bold; padding-right: 14px; padding-bottom: 3px;}
-		td {padding-right: 14px;}
-		td.s, th.s {text-align: right;}
-		div.list { background-color: white; border-top: 1px solid #646464; border-bottom: 1px solid #646464; padding-top: 10px; padding-bottom: 14px;}
-		div.foot { font: 90% monospace; color: #787878; padding-top: 4px;}
-	</style>
+    <style type="text/css">
+        a, a:active {text-decoration: none; color: blue;}
+        a:visited {color: #48468F;}
+        a:hover, a:focus {text-decoration: underline; color: red;}
+        body {background-color: #F5F5F5;}
+        h2 {margin-bottom: 12px;}
+        table {margin-left: 12px;}
+        th, td { font: 90% monospace; text-align: left;}
+        th { font-weight: bold; padding-right: 14px; padding-bottom: 3px;}
+        td {padding-right: 14px;}
+        td.s, th.s {text-align: right;}
+        div.list { background-color: white; border-top: 1px solid #646464; border-bottom: 1px solid #646464; padding-top: 10px; padding-bottom: 14px;}
+        div.foot { font: 90% monospace; color: #787878; padding-top: 4px;}
+    </style>
 </head>
 <body>
 <h2>{{ title }}</h2>
 <div class="list">
-	<table summary="Directory Listing" cellpadding="0" cellspacing="0">
-		<thead><tr>
-			<th class="n"><a href="?s={{ _self.sortInv('n', files.sorting) }}">Name</a></th>
-			<th class="m"><a href="?s={{ _self.sortInv('m', files.sorting) }}">Last Modified</a></th>
-			<th class="s"><a href="?s={{ _self.sortInv('s', files.sorting) }}">Size</a></th>
-			<th class="t">Type</th><th class="t">Perms</th>
-		</tr></thead>
-		<tbody>
-		{% for row in files.list %}
-			<tr><td class="n"><a href="{{ files.base }}/{{ row.path }}">{{ row.name }}</a></td>
-				<td class="m">{{ row.modified | date('Y-M-d H:i:s') }}</td>
-				<td class="s">{{ row.size | filesize }}</td>
-				<td class="t">{{ row.contentType ?? 'Directory' }}</td>
-				<td class="p">{{ row.perms }}</td></tr>
-		{% endfor %}
-		</tbody>
-	</table>
+    <table summary="Directory Listing" cellpadding="0" cellspacing="0">
+        <thead><tr>
+            <th class="n"><a href="?s={{ _self.sortInv('n', files.sorting) }}">Name</a></th>
+            <th class="m"><a href="?s={{ _self.sortInv('m', files.sorting) }}">Last Modified</a></th>
+            <th class="s"><a href="?s={{ _self.sortInv('s', files.sorting) }}">Size</a></th>
+            <th class="t">Type</th><th class="t">Perms</th>
+        </tr></thead>
+        <tbody>
+        {% for row in files.list %}
+            <tr><td class="n"><a href="{{ files.base }}/{{ row.path }}">{{ row.name }}</a></td>
+                <td class="m">{{ row.modified | date('Y-M-d H:i:s') }}</td>
+                <td class="s">{{ row.size | filesize }}</td>
+                <td class="t">{{ row.contentType ?? 'Directory' }}</td>
+                <td class="p">{{ row.perms }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 <div class="foot"><?= DAVIndex::INFO ?></div>
 </body>

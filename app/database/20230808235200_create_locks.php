@@ -4,9 +4,9 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateLocks extends AbstractMigration
 {
-	public function up(): void
+    public function up(): void
     {
-		$schema = $this->db->createSchema();
+        $schema = $this->db->createSchema();
         $schema->create('inode_locks')
             ->int('id')->increment()
             ->int('inode_id')
@@ -19,12 +19,12 @@ class CreateLocks extends AbstractMigration
             ->primary('id')
             ->unique('token');
         $schema->execute();
-	}
+    }
 
-	public function down(): void
+    public function down(): void
     {
-		$schema = $this->db->createSchema();
-		$schema->drop('inode_locks');
+        $schema = $this->db->createSchema();
+        $schema->drop('inode_locks');
         $schema->execute();
-	}
+    }
 }

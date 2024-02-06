@@ -4,22 +4,22 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateInodes extends AbstractMigration
 {
-	public function up(): void
+    public function up(): void
     {
-		$schema = $this->db->createSchema();
-		$schema->create('inodes')
-			->int('id')->increment()
+        $schema = $this->db->createSchema();
+        $schema->create('inodes')
+            ->int('id')->increment()
             ->int('parent_id')->nullable()
             ->int('owner_id')->nullable()
             ->tinyInt('type')
-			->varchar('name', 255)
+            ->varchar('name', 255)
             ->bigInt('deleted')->nullable()
             ->bigInt('modified')
             ->bigInt('size')->defaultIs(0)
             ->varchar('etag', 255)->nullable()
             ->int('current_version_id')->nullable()
             ->int('link_target')->nullable()
-			->primary('id')
+            ->primary('id')
             ->index(['parent_id', 'name'], 'subfolder');
 
         $schema->create('file_versions')
@@ -45,14 +45,14 @@ class CreateInodes extends AbstractMigration
             ->unique(['inode_id', 'name'], 'props_for_inode');
 
         $schema->execute();
-	}
+    }
 
-	public function down(): void
+    public function down(): void
     {
-		$schema = $this->db->createSchema();
-		$schema->drop('inodes');
-		$schema->drop('file_versions');
-		$schema->drop('inode_props');
+        $schema = $this->db->createSchema();
+        $schema->drop('inodes');
+        $schema->drop('file_versions');
+        $schema->drop('inode_props');
         $schema->execute();
-	}
+    }
 }

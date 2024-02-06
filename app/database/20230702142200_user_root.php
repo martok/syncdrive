@@ -6,7 +6,7 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class UserRoot extends AbstractMigration
 {
-	public function up(): void
+    public function up(): void
     {
         // create roots for users that don't have one
         foreach (Users::findAll() as $user) {
@@ -17,10 +17,10 @@ class UserRoot extends AbstractMigration
             $root = Inodes::New(Inodes::TYPE_COLLECTION, $user->idStr(), owner: $user->id);
             $root->save();
         }
-	}
+    }
 
-	public function down(): void
+    public function down(): void
     {
-	}
+    }
 
 }

@@ -2,27 +2,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>{{ view_title is null ? site.title : view_title ~ ' - ' ~ site.title }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ view_title is null ? site.title : view_title ~ ' - ' ~ site.title }}</title>
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/css/uikit.min.css" integrity="sha256-BiDlbsUnIdT5yXpgddO9uTiuqk+zxOLDsfHX9kvi0dg=" crossorigin="anonymous">
-	<script src="https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/js/uikit.min.js" integrity="sha256-XFrMJmFFYXC/bVcvHRt6z3Bw1EBuDtpZm8eyzgvNjgM=" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/js/uikit-icons.min.js" integrity="sha256-UPw0Xvn5hdUAZlX29x/IUmyzrbAvEQq8UsMCqCQv2RE=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/css/uikit.min.css" integrity="sha256-BiDlbsUnIdT5yXpgddO9uTiuqk+zxOLDsfHX9kvi0dg=" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/js/uikit.min.js" integrity="sha256-XFrMJmFFYXC/bVcvHRt6z3Bw1EBuDtpZm8eyzgvNjgM=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/js/uikit-icons.min.js" integrity="sha256-UPw0Xvn5hdUAZlX29x/IUmyzrbAvEQq8UsMCqCQv2RE=" crossorigin="anonymous"></script>
 
-	<script src="https://cdn.jsdelivr.net/npm/jquery@3.7/dist/jquery.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/timeago@1.6.7/jquery.timeago.min.js"></script>
-	<script type="text/javascript">
-		jQuery.timeago.settings.localeTitle = true;
-	</script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/timeago@1.6.7/jquery.timeago.min.js"></script>
+    <script type="text/javascript">
+        jQuery.timeago.settings.localeTitle = true;
+    </script>
 
-	<link href="/static/css/main.css" rel="stylesheet">
-	<script type="text/javascript">
-		{% for var, value in exports %}
-		var {{ var }} = {{ value|json_encode|raw }};
-		{% endfor %}
-	</script>
-	{% block html_head %}{% endblock %}
+    <link href="/static/css/main.css" rel="stylesheet">
+    <script type="text/javascript">
+        {% for var, value in exports %}
+        var {{ var }} = {{ value|json_encode|raw }};
+        {% endfor %}
+    </script>
+    {% block html_head %}{% endblock %}
 </head>
 <body>
 {% block html_body %}{% endblock %}

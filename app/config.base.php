@@ -4,13 +4,13 @@ return [
     'log' => [
         'file' => 'data/application.log',
     ],
-	'db' => [
-		'type' => 'sqlite',
-		'host' => 'localhost',
-		'database' => 'data/database.sqlite',
-		'username' => '',
-		'password' => '',
-	],
+    'db' => [
+        'type' => 'sqlite',
+        'host' => 'localhost',
+        'database' => 'data/database.sqlite',
+        'username' => '',
+        'password' => '',
+    ],
     'storage' => [
         'checksums' => ['SHA1'],
         'chunkSize' => '64M',

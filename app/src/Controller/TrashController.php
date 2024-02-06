@@ -19,8 +19,8 @@ use Nepf2\Util\Path;
 class TrashController extends Base
 {
     #[Auto\Route('/trash')]
-	public function trashList(Response $res, Request $req)
-	{
+    public function trashList(Response $res, Request $req)
+    {
         if (!$this->isLoggedIn()) {
             $res->redirect('/');
             return;

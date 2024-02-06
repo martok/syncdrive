@@ -71,8 +71,8 @@ function app_run_migrations(\Nepf2\Application $app): void
 $app = new Nepf2\Application();
 $app->setRoot(REPO_ROOT);
 $cfg = $app->mergeConfigs([
-	'app/config.base.php',
-	'data/config.user.php',
+    'app/config.base.php',
+    'data/config.user.php',
 ]);
 $app->setUserConfig($cfg);
 $app->setLogConfig($cfg['log']);
@@ -87,7 +87,7 @@ $app->addComponent(\Nepf2\Session\Session::class, config: [
 ]);
 $app->addComponent(\Nepf2\TaskScheduler\TaskScheduler::class);
 $app->addComponent(\Nepf2\Template\Template::class, config: [
-	'templates' => 'app/view',
+    'templates' => 'app/view',
 ]);
 
 app_run_migrations($app);

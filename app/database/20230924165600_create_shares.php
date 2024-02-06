@@ -4,9 +4,9 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateShares extends AbstractMigration
 {
-	public function up(): void
+    public function up(): void
     {
-		$schema = $this->db->createSchema();
+        $schema = $this->db->createSchema();
         $schema->create('inode_shares')
             ->int('id')->increment()
             ->int('inode_id')
@@ -19,13 +19,13 @@ class CreateShares extends AbstractMigration
             ->primary('id')
             ->index('token', 'share_by_token');
         $schema->execute();
-	}
+    }
 
-	public function down(): void
+    public function down(): void
     {
-		$schema = $this->db->createSchema();
-		$schema->drop('shared_inodes');
-		$schema->drop('external_shares');
+        $schema = $this->db->createSchema();
+        $schema->drop('shared_inodes');
+        $schema->drop('external_shares');
         $schema->execute();
-	}
+    }
 }

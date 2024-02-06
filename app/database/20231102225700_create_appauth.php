@@ -4,9 +4,9 @@ use Pop\Db\Sql\Migration\AbstractMigration;
 
 class CreateAppAuth extends AbstractMigration
 {
-	public function up(): void
+    public function up(): void
     {
-		$schema = $this->db->createSchema();
+        $schema = $this->db->createSchema();
         $schema->create('login_tokens')
             ->int('id')->increment()
             ->bigInt('created')
@@ -31,13 +31,13 @@ class CreateAppAuth extends AbstractMigration
             ->unique(['login_name', 'password']);
 
         $schema->execute();
-	}
+    }
 
-	public function down(): void
+    public function down(): void
     {
-		$schema = $this->db->createSchema();
-		$schema->drop('login_tokens');
-		$schema->drop('app_passwords');
+        $schema = $this->db->createSchema();
+        $schema->drop('login_tokens');
+        $schema->drop('app_passwords');
         $schema->execute();
-	}
+    }
 }

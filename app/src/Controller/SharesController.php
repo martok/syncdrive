@@ -26,8 +26,8 @@ use Nepf2\Util\Arr;
 class SharesController extends Base
 {
     #[Auto\Route('/shares')]
-	public function shareList(Response $res, Request $req)
-	{
+    public function shareList(Response $res, Request $req)
+    {
         if (!$this->isLoggedIn()) {
             $res->redirect('/');
             return;

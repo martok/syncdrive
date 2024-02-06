@@ -26,8 +26,8 @@ use Nepf2\Util\Arr;
 class AdminController extends Base
 {
     #[Auto\Route('/admin')]
-	public function adminOverview(Response $res, Request $req)
-	{
+    public function adminOverview(Response $res, Request $req)
+    {
         if (!$this->isCurrentUserAdmin()) {
             $res->redirect('/');
             return;
