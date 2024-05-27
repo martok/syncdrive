@@ -14,6 +14,11 @@
     <script src="https://cdn.jsdelivr.net/npm/timeago@1.6.7/jquery.timeago.min.js"></script>
     <script type="text/javascript">
         jQuery.timeago.settings.localeTitle = true;
+        customElements.define("time-ago", class extends HTMLTimeElement {
+            connectedCallback() {
+                $(this).timeago();
+            }
+        }, {extends: "time"})
     </script>
 
     <link href="/static/css/main.css" rel="stylesheet">

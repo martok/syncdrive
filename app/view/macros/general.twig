@@ -1,6 +1,6 @@
 
 {% macro timeago_element(time) %}
-    <time class="timeago" datetime="{{ time|date('c') }}">{{ time|date('c')}}</time>
+    <time is="time-ago" datetime="{{ time|date('c') }}">{{ time|date('c')}}</time>
 {% endmacro %}
 
 {% macro opt_query(value, field, before='&') -%}

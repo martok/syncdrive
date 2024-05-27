@@ -61,7 +61,6 @@ class SorTable extends EventSubTrait() {
     }
 
     _decorateBody() {
-        $('time', this._tbody).timeago();
         for (const row of this._tbody.rows) {
             this._columns.forEach((colDef, colIndex) => {
                 const cell = row.cells[colIndex];
