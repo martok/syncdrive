@@ -1,4 +1,5 @@
 import {apiFetch} from "../apiClient.js";
+import {some} from "../containers.js";
 import {formatFileSize} from "../formatting.js";
 import {EB, UKButton, UKFormControl, UKIcon} from "../builder.js";
 import AttachableComponent from "../AttachableComponent.js";
@@ -219,7 +220,7 @@ export default class FileDetailBar extends AttachableComponent {
             EB('legend', {$: 'uk-legend'}, 'Permissions'),
             EB('label', {$: 'uk-form-label'},
                 EB('input', {$: 'uk-checkbox', type: 'checkbox', name: 'permsModify',
-                    checked: Array.prototype.some.call('WNVCK', p => initalPerms.includes(p))}),
+                    checked: some('WNVCK', p => initalPerms.includes(p))}),
                 ' Modify files'
             ),
             EB('label', {$: 'uk-form-label'},

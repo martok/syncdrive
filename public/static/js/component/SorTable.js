@@ -1,3 +1,4 @@
+import {indexOf, slice} from "../containers.js";
 import AttachableComponent from "../AttachableComponent.js";
 import EventSub from "./EventSub.js";
 
@@ -85,9 +86,9 @@ export default class SorTable extends AttachableComponent {
                 if (event.shiftKey) {
                     const foc = this.getFocusedRow();
                     if (foc) {
-                        const i1 = Array.prototype.indexOf.call(this._tbody.children, foc);
-                        const i2 = Array.prototype.indexOf.call(this._tbody.children, row);
-                        const range = Array.prototype.slice.call(this._tbody.children, Math.min(i1, i2), Math.max(i1, i2) + 1);
+                        const i1 = indexOf(this._tbody.children, foc);
+                        const i2 = indexOf(this._tbody.children, row);
+                        const range = slice(this._tbody.children, Math.min(i1, i2), Math.max(i1, i2) + 1);
                         for (const row of range)
                             row.classList.add('row-selected');
                     }

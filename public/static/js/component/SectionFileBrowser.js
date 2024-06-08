@@ -1,5 +1,6 @@
 import {UKButton, UKIcon} from "../builder.js";
 import {apiFetch} from "../apiClient.js";
+import {every, includes, map, some} from "../containers.js";
 import AttachableComponent from "../AttachableComponent.js";
 import EventSub from "./EventSub.js";
 import FileDetailBar from "./FileDetailBar.js";
@@ -11,7 +12,7 @@ import UploadDropper from "./UploadDropper.js";
 const LS_COPIED_FILES = 'browse:copied';
 
 function hasPerms(perms) {
-    return Array.prototype.every.call(perms, p => CURRENT_PERMISSIONS.includes(p));
+    return every(perms, p => CURRENT_PERMISSIONS.includes(p));
 }
 
 export default class SectionFileBrowser extends AttachableComponent {
@@ -86,10 +87,10 @@ export default class SectionFileBrowser extends AttachableComponent {
             newButtons.push(UKButton([UKIcon('move')],
                 {title: 'Move files', onclick: this.onToolbarCopyMoveClick.bind(this, 'move')}));
             if (hasPerms('D')) {
-                if (!Array.prototype.every.call(seleccted, (row) => row.sortableData.deleted))
+                if (!every(selected, (row) => row.sortableData.deleted))
                     newButtons.push(UKButton(UKIcon('trash'),
                         {title: 'Delete', onclick: this.onToolbarDeleteClick.bind(this)}));
-                if (Array.prototype.some.call(selected, (row) => row.sortableData.deleted)) {
+                if (some(selected, (row) => row.sortableData.deleted)) {
                     newButtons.push(UKButton(UKIcon('history'),
                         {title: 'Restore', onclick: this.onToolbarRestoreClick.bind(this)}));
                     newButtons.push(UKButton(UKIcon('ban'),
@@ -104,7 +105,7 @@ export default class SectionFileBrowser extends AttachableComponent {
     onSelectionChanged() {
         const selected = this.fileTable.getSelectedRows();
         const focused = this.fileTable.getFocusedRow();
-        const isSelected = Array.prototype.includes.call(selected, focused);
+        const isSelected = includes(selected, focused);
         const file = isSelected ? focused.sortableData : null;
         this.updateToolbarForSelection(selected, file);
         if (this.fileDetails)
@@ -198,7 +199,7 @@ export default class SectionFileBrowser extends AttachableComponent {
 
     onToolbarCopyMoveClick(operation) {
         const selected = this.fileTable.getSelectedRows();
-        const files = Array.prototype.map.call(selected, (row) => row.sortableData);
+        const files = map(selected, (row) => row.sortableData);
         const paths = files.map((file) => file.path);
         localStorage.setItem(this.storageKey, JSON.stringify({operation, paths}));
         this.onStorageChanged();
@@ -222,7 +223,7 @@ export default class SectionFileBrowser extends AttachableComponent {
 
     async onToolbarDeleteClick() {
         const selected = this.fileTable.getSelectedRows();
-        const files = Array.prototype.map.call(selected, (row) => row.sortableData).filter((file) => !file.deleted);
+        const files = map(selected, (row) => row.sortableData).filter((file) => !file.deleted);
         if (!confirm(`Move ${files.length} to trash?`))
             return;
         const result = await apiFetch(`/ajax/file/delete`, {
@@ -234,7 +235,7 @@ export default class SectionFileBrowser extends AttachableComponent {
 
     async onToolbarRestoreClick() {
         const selected = this.fileTable.getSelectedRows();
-        const files = Array.prototype.map.call(selected, (row) => row.sortableData).filter((file) => file.deleted);
+        const files = map(selected, (row) => row.sortableData).filter((file) => file.deleted);
         if (!confirm(`Restore ${files.length} items?`))
             return;
         const result = await apiFetch(`/ajax/file/restore`, {
@@ -246,7 +247,7 @@ export default class SectionFileBrowser extends AttachableComponent {
 
     async onToolbarRemoveClick() {
         const selected = this.fileTable.getSelectedRows();
-        const files = Array.prototype.map.call(selected, (row) => row.sortableData).filter((file) => file.deleted);
+        const files = map(selected, (row) => row.sortableData).filter((file) => file.deleted);
         if (!confirm(`Permanently delete ${files.length} items?`))
             return;
         const result = await apiFetch(`/ajax/file/remove`, {
