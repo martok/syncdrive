@@ -1,5 +1,9 @@
 {% from "macros/general.twig" import timeago_element, opt_query %}
 
+<script type="module" src="/static/js/component/FileTable.js"></script>
+<script type="module" src="/static/js/component/UploadDropper.js"></script>
+<script type="module" src="/static/js/component/Uploader.js"></script>
+
 <div class="uk-clearfix">
     <!-- Breadcrumbs -->
     <ul class="uk-breadcrumb uk-float-left" id="browse-breadcrumbs">
@@ -40,15 +44,18 @@
 
 <!-- Uploads -->
 {% if 'C' in exports.CURRENT_PERMISSIONS or 'W' in exports.CURRENT_PERMISSIONS %}
-    <div id="upload-drop" class="uk-text-center">
-        <input id="fileUpload" type="file" multiple style="display:none">
+    <div ac-upload-dropper="dragTargets:.files-main,.files-share"
+         id="upload-drop" class="uk-text-center">
+        <input id="upload-form" type="file" multiple style="display:none">
         <i uk-icon="cloud-upload"></i>Upload files by dropping them here
     </div>
-    <div id="upload-status" class="uk-grid-small uk-grid-match uk-child-width-1-3@s uk-child-width-1-4@m" uk-grid></div>
+    <div ac-upload-status uk-grid
+         id="upload-status" class="uk-grid-small uk-grid-match uk-child-width-1-3@s uk-child-width-1-4@m"></div>
 {% endif %}
 
 <!-- Files -->
-<table id="file-list-table" class="uk-table uk-table-hover uk-table-striped view-{{ files.view }}">
+<table ac-file-table
+       id="file-list-table" class="uk-table uk-table-hover uk-table-striped view-{{ files.view }}">
     <thead>
         <tr>
             <th>Name</th>

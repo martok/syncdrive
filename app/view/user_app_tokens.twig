@@ -30,9 +30,11 @@
 
 {% block content_main %}
     <h1>{{ view_title }}</h1>
-    {% if not list %}
-        <p>No items.</p>
-    {% else %}
-        {{ block('app_tokens') }}
-    {% endif %}
+    <section>
+        {% if not list %}
+            <p>No items.</p>
+        {% else %}
+            {{ block('app_tokens') }}
+        {% endif %}
+    </section>
 {% endblock %}

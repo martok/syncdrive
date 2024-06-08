@@ -3,31 +3,34 @@
 {% from "macros/general.twig" import timeago_element %}
 
 {% block content_main %}
+    <script src="/static/js/component/SectionTrashedFiles.js" type="module"></script>
+
     <h1>{{ view_title }}</h1>
 
-    <table id="trash-list" class="uk-table uk-table-small uk-table-hover uk-table-striped">
-        <thead>
-        <tr>
-            <th class="uk-width-1-5">Name</th>
-            <th>Origin</th>
-            <th class="uk-width-1-5">Deleted</th>
-            <th class="uk-width-1-6">Size</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for file in files.list %}
-            <tr data-sortable-row="{{ file|json_encode }}" >
-                <td><a href="/browse{{ file.path }}">{{ file.name }}</a></td>
-                <td><a href="/browse{{ file.originPath }}?deleted=1">{{ file.originDisplay }}</a></td>
-                <td>{{ timeago_element(file.deleted) }}</td>
-                <td{% if file.isFolder %} class="uk-text-muted"{% endif %}>{{ file.size| filesize }}</td>
+    <section ac-section-trashed-files>
+        <table ac-sortable
+               id="trash-list" class="uk-table uk-table-small uk-table-hover uk-table-striped">
+            <thead>
+            <tr>
+                <th class="uk-width-1-5">Name</th>
+                <th>Origin</th>
+                <th class="uk-width-1-5">Deleted</th>
+                <th class="uk-width-1-6">Size</th>
             </tr>
-        {% endfor %}
-        </tbody>
-        {% if not files.list %}
-            <tfoot><tr><td colspan="4">Empty.</td></tr></tfoot>
-        {% endif %}
-    </table>
-
-    <script src="/static/js/view/TrashViewController.js" type="module"></script>
+            </thead>
+            <tbody>
+            {% for file in files.list %}
+                <tr data-sortable-row="{{ file|json_encode }}" >
+                    <td><a href="/browse{{ file.path }}">{{ file.name }}</a></td>
+                    <td><a href="/browse{{ file.originPath }}?deleted=1">{{ file.originDisplay }}</a></td>
+                    <td>{{ timeago_element(file.deleted) }}</td>
+                    <td{% if file.isFolder %} class="uk-text-muted"{% endif %}>{{ file.size| filesize }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            {% if not files.list %}
+                <tfoot><tr><td colspan="4">Empty.</td></tr></tfoot>
+            {% endif %}
+        </table>
+    </section>
 {% endblock %}

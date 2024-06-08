@@ -1,6 +1,9 @@
 {% from "macros/general.twig" import timeago_element %}
 
-<ul id="file-details" uk-accordion="collapsible:false">
+<script src="/static/js/component/FileDetailBar.js" type="module"></script>
+
+<ul ac-file-detail-bar
+    id="file-details" uk-accordion="collapsible:false">
     <li id="file-details-tab-info" class="uk-open">
         <a class="uk-accordion-title" href="#">Info</a>
         <div class="uk-accordion-content">

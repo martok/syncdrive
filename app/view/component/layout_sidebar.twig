@@ -1,0 +1,19 @@
+{#
+    sidebar_content: block
+    sidebar_header: block
+    sidebar_style: string
+    sidebar_side: "left" | "right"
+#}
+<div id="{{ sidebar_id }}" class="sidebar-collapsible {{ sidebar_style }}">
+    <div class="sidebar-header" {% if sidebar_side == "left" %}style="text-align: right"{% endif %}>
+        {% if sidebar_side == "left" %}
+            <i class="button-expand uk-icon-link" uk-icon="icon: triangle-right" uk-toggle="target:#{{ sidebar_id }}; cls:uk-open"></i>
+            <i class="button-collapse uk-icon-link" uk-icon="icon: triangle-left" uk-toggle="target:#{{ sidebar_id }}; cls:uk-open"></i>
+        {% else %}
+            <i class="button-collapse uk-icon-link" uk-icon="icon: triangle-right" uk-toggle="target:#{{ sidebar_id }}; cls:uk-open"></i>
+            <i class="button-expand uk-icon-link" uk-icon="icon: triangle-left" uk-toggle="target:#{{ sidebar_id }}; cls:uk-open"></i>
+        {% endif %}
+        {% block sidebar_header %}{% endblock %}
+    </div>
+    {% block sidebar_content %}{% endblock %}
+</div>

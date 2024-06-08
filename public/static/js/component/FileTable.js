@@ -1,15 +1,19 @@
-import {SorTable} from "./SorTable.js";
+import SorTable from "./SorTable.js";
 
+export default class FileTable extends SorTable {
+    static {
+        this.define('file-table', this);
+    }
 
-export class FileTable extends SorTable {
-    constructor(tableElement) {
-        super(tableElement);
+    create(element) {
+        super.create(element);
+
         this.autoSelect = true;
         this.setColumn(0, { compare: this.sortFilenameColumn.bind(this, 'name') });
         this.setColumn(1, { compare: this.sortDateColumn.bind(this, 'modified') });
         this.setColumn(2, { compare: this.sortFilesizeColumn.bind(this, 'size') });
         this.sortBy(0);
-        for (const thumbnail of tableElement.querySelectorAll(':scope .thumbnail-container img')) {
+        for (const thumbnail of this.querySelectorAll('.thumbnail-container img')) {
             UIkit.scrollspy(thumbnail);
             UIkit.util.on(thumbnail, 'inview', this.onThumbnailViewed.bind(this));
         }

@@ -1,0 +1,48 @@
+@import '../_theme';
+
+@mixin progress-bar-color($color) {
+  // IE
+  color: $color;
+  // Chrome
+  &::-webkit-progress-value {background-color: $color !important;}
+  // Gecko
+  &::-moz-progress-bar {background-color: $color !important;}
+}
+
+.ac-upload-status,*[ac-upload-status] {
+  margin-left: 0;
+
+  .upload-wrapper {
+    padding-left: 0;
+    column-gap: 0;
+
+    .upload-name {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .uk-progress {
+      margin: 0;
+    }
+    &.upload-finished progress {
+      @include progress-bar-color($color-text-success);
+    }
+    &.upload-failed progress {
+      @include progress-bar-color($color-text-danger);
+    }
+
+    .uk-text-small {
+      white-space: nowrap;
+      overflow: visible;
+    }
+
+    .uk-button {
+      padding: 0;
+      margin-right: 6px;
+      /* limits for flex, setting width directly does not work */
+      min-width: 20px;
+      max-width: 20px;
+    }
+  }
+}

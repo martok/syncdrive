@@ -27,6 +27,8 @@
         var {{ var }} = {{ value|json_encode|raw }};
         {% endfor %}
     </script>
+
+    <script type="module" src="/static/js/AttachableComponent.js"></script>
     {% block html_head %}{% endblock %}
 </head>
 <body>

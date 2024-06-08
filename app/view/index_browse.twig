@@ -2,30 +2,34 @@
 {% set view_title = (files.pathsegments ? ((files.pathsegments|last).name ~ " - ") : "") ~ "Browse" %}
 
 {% block content_main %}
-    <div class="full-content file-browser-frame">
-        <div class="files-left sidebar-collapsible uk-open uk-background-muted">
-            <div class="sidebar-header" style="text-align: right">
-                <i class="button-expand uk-icon-link" uk-icon="icon: triangle-right" uk-toggle="target:.files-left; cls:uk-open"></i>
-                <i class="button-collapse uk-icon-link" uk-icon="icon: triangle-left" uk-toggle="target:.files-left; cls:uk-open"></i>
-            </div>
-            {% include "component/files_tree.twig" %}
-            <ul class="uk-nav uk-nav-default">
-                <li><a href="/trash"><i uk-icon="trash"></i> Deleted files</a></li>
-            </ul>
-            {% include "base/_footer.twig" %}
-        </div>
+    <script src="/static/js/component/SectionFileBrowser.js" type="module"></script>
+
+    <section ac-section-file-browser
+             class="full-content file-browser-frame">
+        {% embed "component/layout_sidebar.twig"
+            with {"sidebar_id": "files-left", "sidebar_side": "left", "sidebar_style": "uk-open uk-background-muted"} %}
+            {% block sidebar_content %}
+                {% include "component/files_nav_tree.twig" %}
+                <ul class="uk-nav uk-nav-default">
+                    <li><a href="/trash"><i uk-icon="trash"></i> Deleted files</a></li>
+                </ul>
+                {% include "base/_footer.twig" %}
+            {% endblock %}
+        {% endembed %}
+
         <div class="files-main">
             {% set hidden_enabled = 1 %}
-            {% include "component/files_list.twig" %}
+            {% include "component/files_browser.twig" %}
         </div>
-        <div class="files-right sidebar-collapsible">
-            <div class="sidebar-header">
-                <i class="button-collapse uk-icon-link" uk-icon="icon: triangle-right" uk-toggle="target:.files-right; cls:uk-open"></i>
-                <i class="button-expand uk-icon-link" uk-icon="icon: triangle-left" uk-toggle="target:.files-right; cls:uk-open"></i>
-                <span id="selected-file-name" class="uk-text-bold"></span>
-            </div>
-            {% include "component/files_properties.twig" %}
-        </div>
-    </div>
-    <script src="/static/js/view/FileViewController.js" type="module"></script>
+
+        {% embed "component/layout_sidebar.twig"
+            with {"sidebar_id": "files-right", "sidebar_side": "right"} %}
+            {% block sidebar_header %}
+                <span id="files-right-title" class="uk-text-bold"></span>
+            {% endblock %}
+            {% block sidebar_content %}
+                {% include "component/file_detail_bar.twig" %}
+            {% endblock %}
+        {% endembed %}
+    </section>
 {% endblock %}

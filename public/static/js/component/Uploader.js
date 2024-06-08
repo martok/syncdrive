@@ -1,52 +1,14 @@
-import {EB, UKButton} from "../builder.js";
+import AttachableComponent from "../AttachableComponent.js";
+import {EB} from "../builder.js";
 import {formatFileSize} from "../formatting.js";
-import {EventSubTrait} from "../mixin.js";
 
-
-class UploadDropper extends EventSubTrait() {
-    constructor(containerElement, dragTargets) {
-        super();
-        if (typeof dragTargets === "string")
-            dragTargets = [... document.querySelectorAll(dragTargets)];
-        if (!Array.isArray(dragTargets))
-            dragTargets = [dragTargets];
-        if (!dragTargets.includes(containerElement))
-            dragTargets.unshift(containerElement);
-        for (const target of dragTargets) {
-            target.addEventListener('dragenter', (e) => {
-                containerElement.classList.add('drag-over');
-                e.preventDefault();
-                e.stopPropagation();
-            });
-            target.addEventListener('dragover', (e) => {
-                containerElement.classList.add('drag-over');
-                e.preventDefault();
-                e.stopPropagation();
-            });
-            target.addEventListener('dragleave', (e) => {
-                containerElement.classList.remove('drag-over');
-                e.preventDefault();
-                e.stopPropagation();
-            });
-            target.addEventListener('drop', this.onFileDrop.bind(this));
-        }
-        this.containerElement = containerElement;
-        this.dragTargets = dragTargets;
+export default class Uploader extends AttachableComponent {
+    static {
+        this.define('upload-status', this);
     }
 
-    onFileDrop(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        if (!event.dataTransfer ||
-            !event.dataTransfer.files)
-            return;
-        this.trigger('dropper:filesdropped', event.dataTransfer.files);
-        this.containerElement.classList.remove('drag-over');
-    }
-}
-
-class Uploader {
-    constructor(progressContainer) {
+    create(element) {
+        super.create(element);
         this._concurrent = 1;
         this._removeStatusTimeout = 10000;
         this._progressUpdateInterval = 500;
@@ -54,7 +16,6 @@ class Uploader {
         this._index = 0;
         this.queue = [];
         this.runningUploads = new Map();
-        this.progressContainer = progressContainer;
         addEventListener('beforeunload', this.onBeforeUnload.bind(this), {capture: true});
     }
 
@@ -160,7 +121,7 @@ class Uploader {
 
         // run and store
         this.runningUploads.set(uploadState.index, uploadState);
-        this.progressContainer.prepend(uploadState.ctrl.wrapper);
+        this.element.prepend(uploadState.ctrl.wrapper);
     }
 
     _uploadFinished(uploadState, event) {
@@ -189,7 +150,7 @@ class Uploader {
         uploadState.ctrl.progresstext.innerText = completed ? 'Done' : 'Cancelled';
         setTimeout(() => {
             $(uploadState.ctrl.wrapper).fadeOut('slow', () => {
-                this.progressContainer.removeChild(uploadState.ctrl.wrapper);
+                this.element.removeChild(uploadState.ctrl.wrapper);
             })
         }, this._removeStatusTimeout);
     }
@@ -218,8 +179,3 @@ class Uploader {
         this._startProcessing();
     }
 }
-
-export {
-    UploadDropper,
-    Uploader
-};

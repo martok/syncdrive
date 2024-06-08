@@ -1,6 +1,4 @@
 @import 'uikit-theme';
-@import 'sortable';
-@import 'sidebars';
 @import 'layout';
 
 details {
@@ -77,62 +75,13 @@ div.data-row {
   }
 }
 
-#upload-drop {
-  display: none;
-  border: 2px dashed $color-button-border;
-  padding: 30px;
-
-  &.drag-over {
-    display: block;
-  }
-}
-
-@mixin progress-bar-color($color) {
-  // IE
-  color: $color;
-  // Chrome
-  &::-webkit-progress-value {background-color: $color !important;}
-  // Gecko
-  &::-moz-progress-bar {background-color: $color !important;}
-}
-
-#upload-status {
-  margin-left: 0;
-
-  .upload-wrapper {
-    padding-left: 0;
-    column-gap: 0;
-
-    .upload-name {
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .uk-progress {
-      margin: 0;
-    }
-    &.upload-finished progress {
-      @include progress-bar-color($color-text-success);
-    }
-    &.upload-failed progress {
-      @include progress-bar-color($color-text-danger);
-    }
-
-    .uk-text-small {
-      white-space: nowrap;
-      overflow: visible;
-    }
-
-    .uk-button {
-      padding: 0;
-      margin-right: 6px;
-      /* limits for flex, setting width directly does not work */
-      min-width: 20px;
-      max-width: 20px;
-    }
-  }
-}
+@import 'component/FileDetailBar';
+@import 'component/FileNavTree';
+@import 'component/FileTable';
+@import 'component/SidebarCollapsible';
+@import 'component/Sortable';
+@import 'component/UploadDropper';
+@import 'component/UploadStatus';
 
 .file-browser-frame {
   display: flex;
@@ -142,7 +91,7 @@ div.data-row {
     overflow: hidden;
   }
 
-  .files-left {
+  #files-left {
     width: 240px;
     border-right: 1px solid slategrey;
   }
@@ -153,60 +102,13 @@ div.data-row {
     overflow-x: auto;
   }
 
-  .files-right {
+  #files-right {
     width: 300px;
     border-left: 1px solid slategrey;
   }
 }
 
 
-.file-browser-frame {
-  .files-left {
-    .files-tree {
-      flex-grow: 1;
-      min-height: 64px;
-      overflow-x: hidden;
-      overflow-y: auto;
-      padding: 0;
-    }
-  }
-
-  .files-main {
-    @import 'files-table';
-  }
-
-  .files-right {
-    #file-details {
-      overflow-y: auto;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      .uk-open {
-        flex-grow: 1;
-      }
-    }
-
-    #selected-file-properties {
-      &:not(.file-deleted) .deleted-file-only {
-        display:none;
-      }
-    }
-
-    #file-details-tab-shares {
-      .share-editor {
-        margin: 5px 0 5px -5px;
-        padding: 5px 0 5px 5px;
-        border-left: 1px solid $color-text-inactive;
-        transition: height .2s ease;
-
-      }
-    }
-  }
-}
-
-.files-share {
-  @import 'files-table';
-}
 
 .admin-phpinfo {
   overflow-x: auto;

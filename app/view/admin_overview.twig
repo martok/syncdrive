@@ -4,36 +4,39 @@
 
 {% block content_main %}
     <h1>{{ view_title }}</h1>
-    <h2>Config Checks</h2>
-    <table class="uk-table uk-table-small uk-table-striped">
-        <thead>
-        <tr>
-            <th>Condition</th>
-            <th class="uk-width-1-5">Result</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for check in config.checks %}
+
+    <section>
+        <h2>Config Checks</h2>
+        <table class="uk-table uk-table-small uk-table-striped">
+            <thead>
             <tr>
-                <td>{{ check.name }}</td>
-                <td><i uk-icon="{{ check.success ? 'check' : 'close' }}"></i>{{ check.message }}</td>
+                <th>Condition</th>
+                <th class="uk-width-1-5">Result</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for check in config.checks %}
+                <tr>
+                    <td>{{ check.name }}</td>
+                    <td><i uk-icon="{{ check.success ? 'check' : 'close' }}"></i>{{ check.message }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
 
-    <details><summary>Merged Config</summary>
-        <pre><code>{{ config.merged }}</code></pre>
-    </details>
+        <details><summary>Merged Config</summary>
+            <pre><code>{{ config.merged }}</code></pre>
+        </details>
 
-    <h2>Server Config</h2>
-    <details><summary>General</summary>
-        {{ config.phpinfo_general | raw }}
-    </details>
-    <details><summary>Configuration</summary>
-        {{ config.phpinfo_config | raw }}
-    </details>
-    <details><summary>Loaded Modules</summary>
-        {{ config.phpinfo_modules | raw }}
-    </details>
+        <h2>Server Config</h2>
+        <details><summary>General</summary>
+            {{ config.phpinfo_general | raw }}
+        </details>
+        <details><summary>Configuration</summary>
+            {{ config.phpinfo_config | raw }}
+        </details>
+        <details><summary>Loaded Modules</summary>
+            {{ config.phpinfo_modules | raw }}
+        </details>
+    </section>
 {% endblock %}

@@ -1,0 +1,11 @@
+@import '../_theme';
+
+.ac-upload-dropper,*[ac-upload-dropper] {
+  display: none;
+  border: 2px dashed $color-button-border;
+  padding: 30px;
+
+  &.drag-over {
+    display: block;
+  }
+}

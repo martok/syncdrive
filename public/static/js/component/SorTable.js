@@ -1,13 +1,18 @@
-import { EventSubTrait } from "../mixin.js";
+import AttachableComponent from "../AttachableComponent.js";
+import EventSub from "./EventSub.js";
 
-class SorTable extends EventSubTrait() {
-    constructor(tableElement) {
-        super();
-        if (tableElement.tagName !== 'TABLE')
+export default class SorTable extends AttachableComponent {
+    static {
+        this.define('sortable', this);
+    }
+
+    create(element) {
+        super.create(element);
+
+        if (element.tagName !== 'TABLE')
             throw new TypeError('SorTable argument is not a table element.');
-        this.table = tableElement;
-        this._thead = tableElement.tHead.rows[0];
-        this._tbody = tableElement.tBodies[0];
+        this._thead = element.tHead.rows[0];
+        this._tbody = element.tBodies[0];
         this._columns = [];
         this.sortedBy = -1;
         this.sortedAsc = false;
@@ -15,7 +20,6 @@ class SorTable extends EventSubTrait() {
         this._multiSelect = false;
         this._decorateHead();
         this._decorateBody();
-        this.table.classList.add('sortable');
         this._updateHead();
     }
 
@@ -100,13 +104,13 @@ class SorTable extends EventSubTrait() {
             this._setFocusedRow(newSelected.has(row) ? row : null);
             if (oldSelected.size !== newSelected.size ||
                 (new Set([...oldSelected, ...newSelected])).size !== oldSelected.size) {
-                this.trigger('sortable:selectionchanged');
+                this.as(EventSub).trigger('sortable:selectionchanged');
             }
         }
     }
 
     _onRowDblClicked(row, event) {
-        this.trigger('sortable:dblclick');
+        this.as(EventSub).trigger('sortable:dblclick');
     }
 
     _defaultCompare(columnIndex, rowLeft, rowRight, asc) {
@@ -169,16 +173,12 @@ class SorTable extends EventSubTrait() {
     selectAll() {
         for (const row of this._tbody.rows)
             row.classList.add('row-selected');
-        this.trigger('sortable:selectionchanged');
+        this.as(EventSub).trigger('sortable:selectionchanged');
     }
 
     deselectAll() {
         for (const row of this._tbody.rows)
             row.classList.remove('row-selected');
-        this.trigger('sortable:selectionchanged');
+        this.as(EventSub).trigger('sortable:selectionchanged');
     }
-}
-
-export {
-    SorTable
 }

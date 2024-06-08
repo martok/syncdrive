@@ -1,17 +1,22 @@
 import {apiFetch} from "../apiClient.js";
 import {formatFileSize} from "../formatting.js";
 import {EB, UKButton, UKFormControl, UKIcon} from "../builder.js";
+import AttachableComponent from "../AttachableComponent.js";
 
+export default class FileDetailBar extends AttachableComponent {
+    static {
+        this.define('file-detail-bar', this);
+    }
 
-class FileDetailBar {
-    constructor (sidebar) {
-        this.sidebar = sidebar;
-        this.accordion = this.sidebar.querySelector('#file-details');
-        this.headerText = this.sidebar.querySelector('#selected-file-name');
-        this.infoTable = this.sidebar.querySelector('#selected-file-properties');
-        this.versionsList = this.sidebar.querySelector('#selected-file-versions');
-        this.sharesActions = this.sidebar.querySelector('#selected-file-shares-actions');
-        this.sharesList = this.sidebar.querySelector('#selected-file-shares');
+    create(element) {
+        super.create(element);
+
+        this.sidebar = this.element.parentElement;
+        this.sidebarHeader = this.sidebar.querySelector('#files-right-title');
+        this.infoTable = this.querySelector('#selected-file-properties');
+        this.versionsList = this.querySelector('#selected-file-versions');
+        this.sharesActions = this.querySelector('#selected-file-shares-actions');
+        this.sharesList = this.querySelector('#selected-file-shares');
         this.sharesActions.querySelector('#selected-file-shares-new').addEventListener('click', this.onShareNewClick.bind(this));
         this.currentFile = null;
         this.shareEditAbortFunc = null;
@@ -23,14 +28,14 @@ class FileDetailBar {
     }
 
     setTabVisible(tabName, show) {
-        const tab = document.getElementById('file-details-tab-' + tabName);
+        const tab = this.querySelector('#file-details-tab-' + tabName);
         tab.style.display = show ? '' : 'none';
     }
 
     navigate(tabName) {
         this.setVisible(true);
-        const tab = document.getElementById('file-details-tab-' + tabName);
-        UIkit.accordion(this.accordion).toggle(tab);
+        const tab = this.querySelector('#file-details-tab-' + tabName);
+        UIkit.accordion(this.element).toggle(tab);
     }
 
     _updateTimeago(element, timestamp) {
@@ -40,7 +45,7 @@ class FileDetailBar {
     _updateFileProperties() {
         const file = this.currentFile;
 
-        const cell = (row) => document.getElementById('file-details-field-' + row);
+        const cell = (row) => this.querySelector('#file-details-field-' + row);
 
         this.infoTable.classList.toggle('file-deleted', !!file.deleted);
         cell('size').innerText = formatFileSize(file.size) + (file.isFolder ? ' total' : '');
@@ -141,11 +146,11 @@ class FileDetailBar {
     setFile(fileInfo, autoCollapse=true) {
         if (!fileInfo) {
             this.sidebar.classList.add('forced-closed');
-            this.headerText.innerText = '';
+            this.sidebarHeader.innerText = '';
             this.currentFile = null;
         } else {
             this.sidebar.classList.remove('forced-closed');
-            this.headerText.innerText = fileInfo.name;
+            this.sidebarHeader.innerText = fileInfo.name;
             this.currentFile = fileInfo;
             this._updateFileProperties();
             this._updateFileVersions();
@@ -338,10 +343,4 @@ class FileDetailBar {
             container.remove();
         }
     }
-
-}
-
-
-export {
-    FileDetailBar
 }
