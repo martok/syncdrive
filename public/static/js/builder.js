@@ -70,10 +70,3 @@ export function UKIcon(icon, attributes = {}) {
 export function UKButton(content, attributes = {}) {
     return EB('button', {$: 'uk-button uk-button-default'}, attributes, content);
 }
-
-export function UKFormControl(labelContent, controlContent) {
-    return EB('div', [
-        EB('label', {$: 'uk-form-label'}, labelContent),
-        EB('div', {$: 'uk-form-controls'}, controlContent),
-    ]);
-}

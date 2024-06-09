@@ -1,4 +1,4 @@
-import {EB} from "./builder.js";
+import {html} from "./uhtml.js";
 
 export async function apiFetch(endpoint, body = {}, extraOptions = {}) {
     const opts = {};
@@ -39,7 +39,7 @@ export async function apiFetch(endpoint, body = {}, extraOptions = {}) {
         ['Error ', result.error, ': ', result.message] :
         ['HTTP Error ', res.status, ': ' + resText];
     UIkit.notification({
-        message: EB('div', ...errTexts).innerHTML,
+        message: html`<div>${[...errTexts]}</div>`.innerHTML,
         status: 'danger',
     });
     return false;

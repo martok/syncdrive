@@ -1,5 +1,5 @@
 import AttachableComponent from "../AttachableComponent.js";
-import {EB} from "../builder.js";
+import {html} from "../uhtml.js";
 import {formatFileSize} from "../formatting.js";
 
 export default class Uploader extends AttachableComponent {
@@ -67,16 +67,17 @@ export default class Uploader extends AttachableComponent {
             ctrl: {}
         };
         // setup UI
-        uploadState.ctrl.wrapper = EB('div', {$: 'upload-wrapper upload-running data-row'},
-            EB('div',
-                uploadState.ctrl.name = EB('div', {$: 'upload-name'}, task.file.name),
-                uploadState.ctrl.progress = EB('progress', {$: 'uk-progress'}),
-                uploadState.ctrl.progresstext = EB('div', {$: 'uk-text-small'}, 'Starting...'),
-            ),
-            uploadState.ctrl.btnStop = EB('button', {$: 'data-column-shrink uk-button uk-button-small', 'uk-icon': 'close',
-                title: 'Cancel upload',
-                onclick: () => uploadState.xhr.abort()}),
-        );
+        uploadState.ctrl.wrapper = html`
+            <div class="upload-wrapper upload-running data-row">
+                <div>
+                    ${uploadState.ctrl.name = html`<div class="upload-name">${task.file.name}</div>`}
+                    ${uploadState.ctrl.progress = html`<progress class="uk-progress"/>`}
+                    ${uploadState.ctrl.progresstext = html`<div class="uk-text-small">Starting...</div>`}
+                </div>
+                ${uploadState.ctrl.btnStop = html`<button class="data-column-shrink uk-button uk-button-small" uk-icon="close"
+                        title="Cancel upload" @click=${() => uploadState.xhr.abort()} />`}
+            </div>
+        `;
         uploadState.xhr.withCredentials = true;
         uploadState.xhr.open(task.method, task.url);
         uploadState.xhr.upload.addEventListener('progress', (e) => {

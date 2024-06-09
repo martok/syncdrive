@@ -1,7 +1,8 @@
 import {apiFetch} from "../apiClient.js";
 import {some} from "../containers.js";
 import {formatFileSize} from "../formatting.js";
-import {EB, UKButton, UKFormControl, UKIcon} from "../builder.js";
+import {UKButton, UKIcon} from "../builder.js";
+import {html} from "../uhtml.js";
 import AttachableComponent from "../AttachableComponent.js";
 
 export default class FileDetailBar extends AttachableComponent {
@@ -71,29 +72,33 @@ export default class FileDetailBar extends AttachableComponent {
         if (!result)
             return;
         for (const version of result.versions) {
-            const row = this.versionsList.appendChild(EB('li'));
             const modDate = new Date(version.created * 1000);
             const directLink = `${URI_BASE}/${file.path}?version=${version.id}&ts=${version.created}`;
-            row.classList.toggle('row-selected', version.id === result.current);
-            row.append(
-                EB('div', {$: 'data-row'},
-                    EB('div', {$: 'data-column-shrink'},
-                        EB('a', {target: '_blank', title: 'Download version', download: file.name, href: directLink},
-                            UKIcon('download')
-                        ),
-                    ),
-                    EB('div',
-                        EB('time', { datetime: modDate.toISOString() }, modDate.toLocaleString()),
-                        EB('br'), EB('span', {$: 'uk-text-meta'}, formatFileSize(version.size)),
-                        EB('br'), EB('span', {$: 'uk-text-meta'}, version.creator),
-                    ),
-                    EB('div', {$: 'data-column-shrink'},
-                        version.id === result.current ? null :
-                            UKIcon('history', {title: 'Restore version',
-                                'onclick': this.onVersionRestoreClick.bind(this, version)}),
-                    ),
-                ),
-            );
+            const isCurrent = version.id === result.current;
+
+            const row = html`
+                <li class=${isCurrent ? "row-selected":""}>
+                    <div class="data-row">
+                        <div class="data-column-shrink">
+                            <a target="_blank" title="Download version" download=${file.name} href=${directLink}>${UKIcon('download')}</a>
+                        </div>
+                        <div>
+                            <time is="time-ago" datetime=${modDate.toISOString()}>${modDate.toLocaleString()}</time>
+                            <br>
+                            <span class="uk-text-meta">${formatFileSize(version.size)}</span>
+                            <br>
+                            <span class="uk-text-meta">${version.creator}</span>
+                        </div>
+                        <div class="data-column-shrink">
+                            ${isCurrent ? null :
+                                UKIcon('history', {title: 'Restore version',
+                                    'onclick': this.onVersionRestoreClick.bind(this, version)})
+                            }
+                        </div>
+                    </div>
+                </li>
+            `;
+            this.versionsList.append(row);
         }
     }
 
@@ -111,36 +116,33 @@ export default class FileDetailBar extends AttachableComponent {
         this.sharesActions.style.display = result.canShare ? '' : 'none';
 
         for (const share of result.shares) {
-            const row = this.sharesList.appendChild(EB('li'));
-
             let typeIcon;
             const descr = [];
-
             if (share.editable) {
                 typeIcon = share.token ? 'link' : 'users';
                 if (share.token) {
-                    descr.push(EB('a', {href: `/s/${share.token}`}, share.token));
+                    descr.push(html`<a href=${`/s/${share.token}`}>${share.token}</a>`);
                 }
                 if (share.sharedWith.length) {
                     if (descr.length)
-                        descr.push(EB('br'));
-                    descr.push(EB('span', share.sharedWith.join(', ')));
+                        descr.push(html`<br>`);
+                    descr.push(html`<span>${share.sharedWith.join(', ')}</span>`);
                 }
             } else {
                 typeIcon = 'user';
-                descr.push(EB('span', share.sharedBy));
+                descr.push(html`<span>${share.sharedBy}</span>`);
             }
 
-            row.append(
-                EB('div', {$: 'data-row'},
-                    EB('div', {$: 'data-column-shrink'}, UKIcon(typeIcon)),
-                    EB('div', descr),
-                    EB('div', {$: 'data-column-shrink'},
-                        !share.editable ? null :
-                            UKIcon('pencil', {onclick: this.onShareEditClick.bind(this, share, row)}),
-                    ),
-                ),
-            );
+            const row = html`<li/>`;
+            row.appendChild(html`
+                <div class="data-row">
+                    <div class="data-column-shrink">${UKIcon(typeIcon)}</div>
+                    <div>${descr}</div>
+                    <div class="data-column-shrink">${!share.editable ? null : 
+                        UKIcon('pencil', {onclick: this.onShareEditClick.bind(this, share, row)})}</div>
+                </div>
+            `);
+            this.sharesList.appendChild(row);
         }
     }
 
@@ -185,55 +187,47 @@ export default class FileDetailBar extends AttachableComponent {
     _buildShareEditor(form, existingShare) {
         const initialList = existingShare ? [...existingShare.sharedWith] : [];
         const initalPerms = existingShare?.perms ?? '';
-        form.append(UKFormControl('Share with:', [
-            EB('textarea', {$: 'uk-textarea uk-form-small', name: 'sharedList'},
-                initialList.join('\n'))
-        ]));
-        form.append(EB('fieldset', {$: 'uk-fieldset'},
-            EB('legend', {$: 'uk-legend'},
-                'Public Link: ',
-                EB('input', {$: 'uk-checkbox', type: 'checkbox', name: 'publicLink',
-                    checked: !!existingShare?.token})
-            ),
-            (!existingShare) ? null :
-                EB('input', {$: 'uk-input uk-form-small', type: 'text', name: 'customLink',
-                    value: existingShare?.token || '', placeholder: '(Auto-generated)',
-                    oninput: (e) => e.target.form.publicLink.checked = true}),
-            UKFormControl('Password protection:', [
-                EB('label', {$: 'uk-form-label'},
-                    EB('input', {$: 'uk-checkbox', type: 'checkbox', name: 'passwordEnabled',
-                        checked: existingShare?.hasPassword}),
-                    ' Require password'
-                ),
-                EB('input', {$: 'uk-input uk-form-small', type: 'password', name: 'passwordNew',
-                    placeholder: 'New Password',
-                    oninput: (e) => e.target.form.passwordEnabled.checked = !!e.target.value}),
-            ]),
-            UKFormControl('Presentation:', [
-                EB('select', {$: 'uk-select uk-form-small', name: 'presentation'},
-                    SHARE_PUBLIC_PRESENTATIONS.map((pres) =>
-                        EB('option', {value: pres, selected: pres === existingShare?.presentation}, pres))
-                )
-            ]),
-        ));
-        form.append(EB('fieldset', {$: 'uk-fieldset'},
-            EB('legend', {$: 'uk-legend'}, 'Permissions'),
-            EB('label', {$: 'uk-form-label'},
-                EB('input', {$: 'uk-checkbox', type: 'checkbox', name: 'permsModify',
-                    checked: some('WNVCK', p => initalPerms.includes(p))}),
-                ' Modify files'
-            ),
-            EB('label', {$: 'uk-form-label'},
-                EB('input', {$: 'uk-checkbox', type: 'checkbox', name: 'permsDelete',
-                    checked: initalPerms.includes('D')}),
-                ' Delete files'
-            ),
-            EB('label', {$: 'uk-form-label'},
-                EB('input', {$: 'uk-checkbox', type: 'checkbox', name: 'permsReshare',
-                    checked: initalPerms.includes('R')}),
-                ' Re-share'
-            ),
-        ));
+        form.append(html`
+            <div>
+                <label class="uk-form-label">Share with:</label>
+                <div class="uk-form-controls">
+                    <textarea class="uk-textarea uk-form-small" name="sharedList">${initialList.join('\n')}</textarea>
+                </div>
+            </div>
+            <fieldset class="uk-fieldset">
+                <legend class="uk-legend">Public Link: <input class="uk-checkbox" type="checkbox" name="publicLink" ?checked="${!!existingShare?.token}"></legend>
+                ${!existingShare ? null : html`
+                    <input class="uk-input uk-form-small" type="text" name="customLink" value=${existingShare?.token || ''} placeholder="(Auto-generated)"
+                           @input=${(e) => e.target.form.publicLink.checked = true}>
+                `}
+				<div>
+					<label class="uk-form-label">Password protection:</label>
+					<div class="uk-form-controls">
+                        <label class="uk-form-label"><input class="uk-checkbox" type="checkbox" name="passwordEnabled" ?checked=${existingShare?.hasPassword}> Require password</label>
+                        <input class="uk-input uk-form-small" type="password" name="passwordNew" placeholder="New Password"
+                               @input=${(e) => e.target.form.passwordEnabled.checked = !!e.target.value}>
+					</div>
+				</div>
+				<div>
+					<label class="uk-form-label">Presentation:</label>
+					<div class="uk-form-controls">
+                        <select class="uk-select uk-form-small" name="presentation">
+                            ${SHARE_PUBLIC_PRESENTATIONS.map(
+                                (pres) => html`<option value=${pres} ?selected=${pres === existingShare?.presentation}>${pres}</option>`)}
+                        </select>
+					</div>
+				</div>
+            </fieldset>
+			<fieldset class="uk-fieldset">
+				<legend class="uk-legend">Permissions</legend>
+                <label class="uk-form-label"><input class="uk-checkbox" type="checkbox" name="permsModify"
+                                                    ?checked=${some('WNVCK', p => initalPerms.includes(p))}> Modify files</label>
+				<label class="uk-form-label"><input class="uk-checkbox" type="checkbox" name="permsDelete"
+													?checked=${initalPerms.includes('D')}> Delete files</label>
+				<label class="uk-form-label"><input class="uk-checkbox" type="checkbox" name="permsReshare"
+													?checked=${initalPerms.includes('R')}> Re-share</label>
+            </fieldset>
+        `);
         return (payload) => {
             const newList = form.sharedList.value.split('\n').filter((v) => !!v);
             const added = newList.filter((e) => !initialList.includes(e));
@@ -300,17 +294,18 @@ export default class FileDetailBar extends AttachableComponent {
             };
             this.shareEditAbortFunc = onCancelClick;
 
-            const toolbar = EB('div', {$: 'uk-clearfix'},
-                !existingShare ? null :
-                    UKButton([UKIcon('ban'), 'Unshare'],
-                        {$: 'uk-button-small uk-float-left uk-text-danger', 'onclick': onUnshareClick.bind(this)}),
-                UKButton(UKIcon('close'),
-                    {$: 'uk-button-small uk-float-right', 'onclick': onCancelClick.bind(this)}),
-                UKButton(UKIcon('check'),
-                    {$: 'uk-button-small uk-float-right', 'onclick': onConfirmClick.bind(this)})
-            );
+            const toolbar = html`
+                <div class="uk-clearfix">
+                    ${!existingShare ? null : UKButton([UKIcon('ban'), 'Unshare'],
+							{$: 'uk-button-small uk-float-left uk-text-danger', 'onclick': onUnshareClick.bind(this)})}
+                    ${UKButton(UKIcon('close'),
+							{$: 'uk-button-small uk-float-right', 'onclick': onCancelClick.bind(this)})}
+                    ${UKButton(UKIcon('check'),
+							{$: 'uk-button-small uk-float-right', 'onclick': onConfirmClick.bind(this)})}
+                </div>
+            `;
 
-            const form = EB('form', {$: 'uk-form-stacked'});
+            const form = html`<form class="uk-form-stacked" />`;
             collectPayloadFunc = this._buildShareEditor(form, existingShare);
 
             container.classList = 'share-editor';
@@ -320,7 +315,7 @@ export default class FileDetailBar extends AttachableComponent {
 
     async onShareNewClick() {
         this.editShareAbort();
-        const container = this.sharesActions.insertAdjacentElement('afterend', EB('div'));
+        const container = this.sharesActions.insertAdjacentElement('afterend', html`<div/>`);
         try {
             await this.editShare(container, null);
             await this._updateFileShares();
@@ -333,7 +328,7 @@ export default class FileDetailBar extends AttachableComponent {
     async onShareEditClick(share, contentRow) {
         this.editShareAbort();
         const editButton = contentRow.querySelector(':scope .data-row div:last-of-type i');
-        const container = contentRow.appendChild(EB('div'));
+        const container = contentRow.appendChild(html`<div/>`);
         editButton.style.visibility = 'hidden';
         try {
             await this.editShare(container, share);
