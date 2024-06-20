@@ -116,7 +116,13 @@ class BrowserViewBase
         } else {
             $invert = 1;
         }
-        usort($list, fn ($left, $right) => -($left['isFolder'] <=> $right['isFolder']) ?: ($invert * ($left[$sortedByKey] <=> $right[$sortedByKey])));
+        function comparer ($l, $r): int
+        {
+            if (is_string($l) && is_string($r))
+                return strtolower($l) <=> strtolower($r);
+            return $l <=> $r;
+        };
+        usort($list, fn ($left, $right) => -($left['isFolder'] <=> $right['isFolder']) ?: ($invert * comparer($left[$sortedByKey], $right[$sortedByKey])));
         return $list;
     }
 
