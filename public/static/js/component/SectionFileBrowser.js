@@ -1,4 +1,4 @@
-import {UKButton, UKIcon} from "../builder.js";
+import {html} from "../uhtml.js";
 import {apiFetch} from "../apiClient.js";
 import {every, includes, map, some} from "../containers.js";
 import AttachableComponent from "../AttachableComponent.js";
@@ -38,8 +38,7 @@ export default class SectionFileBrowser extends AttachableComponent {
             this.fileDetails = new FileDetailBar(sidebar);
             const bc = this.querySelector('#browse-breadcrumbs');
             if (bc.childElementCount > 1) {
-                bc.lastElementChild.append(UKIcon('icon: info; ratio: 0.8',
-                    {$: 'uk-margin-small-left', title: 'Show details', onclick: this.onEditCurrentClick.bind(this)}));
+                bc.lastElementChild.append(html`<i uk-icon="icon: info; ratio: 0.8" class="uk-icon-link uk-margin-small-left" title="Show details" @click=${this.onEditCurrentClick.bind(this)}/>`);
             }
         } else {
             this.fileDetails = null;
@@ -76,25 +75,21 @@ export default class SectionFileBrowser extends AttachableComponent {
     updateToolbarForSelection(selected, focusedFile) {
         const newButtons = [];
         if (selected.length) {
-            newButtons.push(UKButton([UKIcon('close'), `(${selected.length} selected)`],
-                {title: 'Clear selection', onclick: this.onToolbarClearSelectionClick.bind(this)}));
             const canRename = focusedFile && !focusedFile.deleted && focusedFile.perms.includes('N');
-            newButtons.push(UKButton([UKIcon('pencil')],
-                {title: 'Rename file', onclick: this.onToolbarRenameClick.bind(this),
-                    disabled: !canRename}));
-            newButtons.push(UKButton([UKIcon('copy')],
-                {title: 'Copy files', onclick: this.onToolbarCopyMoveClick.bind(this, 'copy')}));
-            newButtons.push(UKButton([UKIcon('move')],
-                {title: 'Move files', onclick: this.onToolbarCopyMoveClick.bind(this, 'move')}));
+            newButtons.push(html`
+                <button class="uk-button uk-button-default" title="Clear selection" @click=${this.onToolbarClearSelectionClick.bind(this)}><i uk-icon="close"/>(${selected.length} selected)</button>
+                <button class="uk-button uk-button-default" title="Rename file" @click=${this.onToolbarRenameClick.bind(this)} ?disabled=${!canRename}><i uk-icon="pencil"/></button>
+                <button class="uk-button uk-button-default" title="Copy files" @click=${this.onToolbarCopyMoveClick.bind(this, 'copy')}><i uk-icon="copy"/></button>
+                <button class="uk-button uk-button-default" title="Move files" @click=${this.onToolbarCopyMoveClick.bind(this, 'move')}><i uk-icon="move"/></button>
+            `);
             if (hasPerms('D')) {
                 if (!every(selected, (row) => row.sortableData.deleted))
-                    newButtons.push(UKButton(UKIcon('trash'),
-                        {title: 'Delete', onclick: this.onToolbarDeleteClick.bind(this)}));
+                    newButtons.push(html`<button class="uk-button uk-button-default" title="Delete" @click=${this.onToolbarDeleteClick.bind(this)}><i uk-icon="trash"/></button>`);
                 if (some(selected, (row) => row.sortableData.deleted)) {
-                    newButtons.push(UKButton(UKIcon('history'),
-                        {title: 'Restore', onclick: this.onToolbarRestoreClick.bind(this)}));
-                    newButtons.push(UKButton(UKIcon('ban'),
-                        {title: 'Permanently delete', onclick: this.onToolbarRemoveClick.bind(this)}));
+                    newButtons.push(html`
+                        <button class="uk-button uk-button-default" title="Restore" @click=${this.onToolbarRestoreClick.bind(this)}><i uk-icon="history"/></button>
+                        <button class="uk-button uk-button-default" title="Permanently delete" @click=${this.onToolbarRemoveClick.bind(this)}><i uk-icon="ban"/></button>
+                    `);
                 }
             }
         }

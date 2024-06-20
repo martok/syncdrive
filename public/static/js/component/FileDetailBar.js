@@ -1,7 +1,6 @@
 import {apiFetch} from "../apiClient.js";
 import {some} from "../containers.js";
 import {formatFileSize} from "../formatting.js";
-import {UKButton, UKIcon} from "../builder.js";
 import {html} from "../uhtml.js";
 import AttachableComponent from "../AttachableComponent.js";
 
@@ -80,7 +79,7 @@ export default class FileDetailBar extends AttachableComponent {
                 <li class=${isCurrent ? "row-selected":""}>
                     <div class="data-row">
                         <div class="data-column-shrink">
-                            <a target="_blank" title="Download version" download=${file.name} href=${directLink}>${UKIcon('download')}</a>
+                            <a target="_blank" title="Download version" download=${file.name} href=${directLink}><i uk-icon="download"/></a>
                         </div>
                         <div>
                             <time is="time-ago" datetime=${modDate.toISOString()}>${modDate.toLocaleString()}</time>
@@ -89,11 +88,8 @@ export default class FileDetailBar extends AttachableComponent {
                             <br>
                             <span class="uk-text-meta">${version.creator}</span>
                         </div>
-                        <div class="data-column-shrink">
-                            ${isCurrent ? null :
-                                UKIcon('history', {title: 'Restore version',
-                                    'onclick': this.onVersionRestoreClick.bind(this, version)})
-                            }
+                        <div class="data-column-shrink">${isCurrent ? null :
+                            html`<i uk-icon="history" class="uk-icon-link" @click=${this.onVersionRestoreClick.bind(this, version)}/>`}
                         </div>
                     </div>
                 </li>
@@ -136,10 +132,11 @@ export default class FileDetailBar extends AttachableComponent {
             const row = html`<li/>`;
             row.appendChild(html`
                 <div class="data-row">
-                    <div class="data-column-shrink">${UKIcon(typeIcon)}</div>
+                    <div class="data-column-shrink"><i uk-icon=${typeIcon}/></div>
                     <div>${descr}</div>
                     <div class="data-column-shrink">${!share.editable ? null : 
-                        UKIcon('pencil', {onclick: this.onShareEditClick.bind(this, share, row)})}</div>
+                        html`<i uk-icon="pencil" class="uk-icon-link" @click=${this.onShareEditClick.bind(this, share, row)}/>`}
+                    </div>
                 </div>
             `);
             this.sharesList.appendChild(row);
@@ -296,12 +293,11 @@ export default class FileDetailBar extends AttachableComponent {
 
             const toolbar = html`
                 <div class="uk-clearfix">
-                    ${!existingShare ? null : UKButton([UKIcon('ban'), 'Unshare'],
-							{$: 'uk-button-small uk-float-left uk-text-danger', 'onclick': onUnshareClick.bind(this)})}
-                    ${UKButton(UKIcon('close'),
-							{$: 'uk-button-small uk-float-right', 'onclick': onCancelClick.bind(this)})}
-                    ${UKButton(UKIcon('check'),
-							{$: 'uk-button-small uk-float-right', 'onclick': onConfirmClick.bind(this)})}
+					${!existingShare ? null: 
+                        html`<button class="uk-button uk-button-default uk-button-small uk-float-left uk-text-danger" @click="${onUnshareClick.bind(this)}"><i uk-icon="ban"/>Unshare</button>`
+                    }
+					<button class="uk-button uk-button-default uk-button-small uk-float-right" @click="${onCancelClick.bind(this)}"><i uk-icon="close"/></button>
+					<button class="uk-button uk-button-default uk-button-small uk-float-right" @click="${onConfirmClick.bind(this)}"><i uk-icon="check"/></button>
                 </div>
             `;
 
