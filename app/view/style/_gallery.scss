@@ -1,0 +1,153 @@
+@import "theme";
+
+.gallery-container {
+  background-color: $color-primary-background;
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  /* Controls */
+
+  .gallery-controls {
+    position:fixed;
+    top: 0;
+    right: 0;
+    height: $uk-navbar-item-height;
+    z-index: 100;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    color: $color-text-primary;
+
+    button {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 4px;
+      cursor: pointer;
+      color: $color-text-primary;
+      &:hover {
+        color: $color-text-primary-active;
+      }
+    }
+  }
+
+  .swiper-button-prev, .swiper-button-next {
+    color: $color-text-primary;
+
+    &:hover {
+      color: $color-text-primary-active;
+    }
+
+    .swiper-button-disabled {
+      opacity: 0.7;
+    }
+  }
+
+  .swiper-slide .gallery-header {
+    visibility: hidden;
+  }
+  .swiper:hover .gallery-header {
+    visibility: visible;
+  }
+
+  /* Slides */
+
+  .swiper-slide {
+    text-align: center;
+    font-size: 18px;
+    background: $color-primary-background;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    object-fit: cover;
+
+    .gallery-header {
+      color: $color-text-primary;
+      text-shadow: 0 0 3px $color-primary-background;
+      position: fixed;
+      top: 10px;
+      font-size: 120%;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  /* Main / Thumbnail layout */
+
+  display: flex;
+  flex-direction: column;
+  align-content: stretch;
+  justify-content: space-between;
+
+  .swiper {
+    width: 100%;
+  }
+
+  .swiper-main {
+    flex-grow: 1;
+    .swiper-slide img {
+      object-fit: scale-down;
+    }
+  }
+
+  .swiper-thumbs {
+    flex-grow: 0; flex-shrink: 0;
+    height: 20%;
+    max-height: 192px;
+    min-height: 96px;
+    box-sizing: border-box;
+
+    .swiper-slide {
+      width: 20%;
+      height: 100%;
+      opacity: 0.4;
+      user-select: none;
+      cursor: pointer;
+
+      .gallery-header {
+        font-size: 90%;
+      }
+
+      img {
+        object-fit: cover;
+      }
+    }
+
+    .swiper-slide-thumb-active {
+      opacity: 1;
+    }
+  }
+
+  .bevel-divider {
+    flex-grow: 0; flex-shrink: 0;
+    height: 8px;
+    margin: 3px 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    user-select: none;
+
+    .bevel-button {
+      width: 96px;
+      height: 8px;
+      border: 0;
+      border-radius: 3px;
+      background-color: $color-text-active;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+  }
+}

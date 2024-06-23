@@ -1,5 +1,7 @@
 {% from "macros/general.twig" import timeago_element, opt_query %}
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script type="module" src="/static/js/component/FileTable.js"></script>
 <script type="module" src="/static/js/component/UploadDropper.js"></script>
 <script type="module" src="/static/js/component/Uploader.js"></script>
@@ -68,7 +70,7 @@
             <tr data-sortable-row="{{ file|json_encode }}" class="{{ file.deleted ? 'row-deleted' : '' }}">
                 <td>
                     <i uk-icon="{{ file.icon }}"></i>
-                    <a href="{{ files.base }}/{{ file.path }}">{{ file.name }}</a>
+                    <a class="file-link" href="{{ files.base }}/{{ file.path }}">{{ file.name }}</a>
                     {%- if file.isShared %} <i uk-icon="link"></i>{% endif -%}
                     {% if not file.isFolder %}
                         <div class="thumbnail-container">

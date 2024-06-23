@@ -10,6 +10,7 @@ import UploadDropper from "./UploadDropper.js";
 
 
 const LS_COPIED_FILES = 'browse:copied';
+const MEDIA_FILE_EXT = /\.(?:png|gif|jpe?g|bmp|tiff?|webp|ico)$/i;
 
 function hasPerms(perms) {
     return every(perms, p => CURRENT_PERMISSIONS.includes(p));
@@ -67,6 +68,10 @@ export default class SectionFileBrowser extends AttachableComponent {
         if (hasPerms('K') && (btn = this.querySelector('#action-new-folder'))) {
             btn.addEventListener('click', this.onToolbarNewFolderClick.bind(this));
             btn.disabled = false;
+        }
+
+        for (const link of this.querySelectorAll('a.file-link')) {
+            link.addEventListener('click', this.onFileLinkClicked.bind(this));
         }
 
         this.onSelectionChanged();
@@ -251,4 +256,124 @@ export default class SectionFileBrowser extends AttachableComponent {
         if (result && result.result)
             window.location.reload();
     }
+
+    _buildGallery() {
+        if (document.querySelector('.gallery-container')) {
+            return;
+        }
+        const container = html`<div class="gallery-container">
+            <div class="gallery-controls">
+                <button @click=${this.onGalleryFullscreenClick.bind(this)} title="Fullscreen"><i uk-icon="expand"/></button>
+                <button @click=${this.onGalleryCloseClick.bind(this)} title="Close"><i uk-icon="close"/></button>
+            </div>
+            <div class="swiper swiper-main">
+                <div class="swiper-wrapper"/>
+				<div class="swiper-button-next"></div>
+				<div class="swiper-button-prev"></div>
+            </div>
+            <div class="bevel-divider"><button class="bevel-button" @click=${this.onGalleryThumbBevelClick.bind(this)} title="Show/Hide Thumbnails">&bullet; &bullet; &bullet;</button></div>
+            <div class="swiper swiper-thumbs" thumbsSlider=""><div class="swiper-wrapper"/></div>
+        </div>`;
+        document.body.appendChild(container);
+        const main = container.querySelector('.swiper-main');
+        const thumbs = container.querySelector('.swiper-thumbs');
+        const mw = main.querySelector('.swiper-wrapper');
+        const tw = thumbs.querySelector('.swiper-wrapper');
+        for (const row of this.fileTable.getRows()) {
+            const file = row.sortableData;
+            if (!this._isMediaType(file))
+                continue;
+            const url = row.querySelector('.file-link')?.href;
+            const tnUrl = row.querySelector('.thumbnail-container img')?.dataset.src;
+            if (!tnUrl || !url)
+                continue;
+            mw.appendChild(html`<div class="swiper-slide" .file=${file}>
+                <div class="gallery-header"><span class="gallery-filename">${file.name}</span></div>
+                <div class="swiper-zoom-container"><img data-src=${url}></div>
+            </div>`);
+            tw.appendChild(html`<div class="swiper-slide">
+				<div class="gallery-header"><span class="gallery-filename">${file.name}</span></div>
+                <img data-src=${tnUrl}>
+            </div>`);
+        }
+        const thSwiper = new Swiper(thumbs, {
+            spaceBetween: 10,
+            slidesPerView: 5,
+            freeMode: true,
+            watchSlidesProgress: true,
+        });
+        const mainSwiper = new Swiper(main, {
+            spaceBetween: 10,
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            keyboard: {
+                enabled: true,
+            },
+            zoom: true,
+            thumbs: {
+                swiper: thSwiper,
+            },
+        });
+        for (const thumbnail of container.querySelectorAll('.swiper-slide img')) {
+            UIkit.scrollspy(thumbnail);
+            UIkit.util.on(thumbnail, 'inview', this.fileTable.onThumbnailViewed);
+        }
+    }
+
+    _navigateGalleryTo(file) {
+        const main = document.querySelector('.gallery-container .swiper-main');
+        if (!main)
+            return;
+        const mainSwiper = main.swiper;
+        for (let i=0; i<mainSwiper.slides.length; i++) {
+            if (mainSwiper.slides[i].file === file) {
+                mainSwiper.slideTo(i, 0, false);
+                return;
+            }
+        }
+    }
+
+    _isMediaType(file) {
+        return MEDIA_FILE_EXT.test(file.name);
+    }
+
+    onFileLinkClicked(e) {
+        const link = e.target;
+        const file = link.closest('tr').sortableData;
+        if (this._isMediaType(file)) {
+            e.preventDefault();
+            this._buildGallery();
+            this._navigateGalleryTo(file);
+        }
+    }
+
+    onGalleryCloseClick() {
+        const gallery = document.querySelector('.gallery-container');
+        const mainSwiper = gallery.querySelector('.swiper-main').swiper;
+        const active = mainSwiper.slides[mainSwiper.activeIndex];
+        for (const row of this.fileTable.getRows()) {
+            if (row.sortableData === active.file) {
+                this.fileTable.setFocusedRow(row);
+                break;
+            }
+        }
+        gallery.remove();
+    }
+
+    onGalleryThumbBevelClick() {
+        const gallery = document.querySelector('.gallery-container');
+        $('.swiper-thumbs', gallery).toggle();
+    }
+
+    onGalleryFullscreenClick() {
+        const gallery = document.querySelector('.gallery-container');
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            gallery.requestFullscreen();
+        }
+    }
+
 }

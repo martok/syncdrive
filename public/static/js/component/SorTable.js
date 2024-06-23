@@ -156,6 +156,10 @@ export default class SorTable extends AttachableComponent {
         this._updateHead();
     }
 
+    getRows() {
+        return this._tbody.rows;
+    }
+
     getSelectedRows() {
         return this._tbody.querySelectorAll(':scope > .row-selected');
     }
@@ -169,6 +173,13 @@ export default class SorTable extends AttachableComponent {
 
     getFocusedRow() {
         return this._tbody.querySelector(':scope > .row-focused');
+    }
+
+    setFocusedRow(row) {
+        for (const row of this._tbody.querySelectorAll('.row-selected,.row-focused'))
+            row.classList.remove('row-selected', 'row-focused');
+        row.classList.add('row-selected', 'row-focused');
+        this.as(EventSub).trigger('sortable:selectionchanged');
     }
 
     selectAll() {
