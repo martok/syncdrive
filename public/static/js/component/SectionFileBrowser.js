@@ -10,10 +10,22 @@ import UploadDropper from "./UploadDropper.js";
 
 
 const LS_COPIED_FILES = 'browse:copied';
-const MEDIA_FILE_EXT = /\.(?:png|gif|jpe?g|bmp|tiff?|webp|ico)$/i;
+const FILE_EXT_IMAGE = /\.(?:png|gif|jpe?g|bmp|tiff?|webp|ico)$/i;
+const FILE_EXT_VIDEO = /\.(?:avi|mkv|mp4|wmv|webm)$/i;
+const FILE_EXT_AUDIO = /\.(?:mp3|mp2|wav|aiff|mka|wma)$/i;
 
 function hasPerms(perms) {
     return every(perms, p => CURRENT_PERMISSIONS.includes(p));
+}
+
+function getMediaViewType(file) {
+    if (FILE_EXT_IMAGE.test(file.name))
+        return 'image';
+    if (FILE_EXT_VIDEO.test(file.name))
+        return 'video';
+    if (FILE_EXT_AUDIO.test(file.name))
+        return 'audio';
+    return '';
 }
 
 export default class SectionFileBrowser extends AttachableComponent {
@@ -261,6 +273,7 @@ export default class SectionFileBrowser extends AttachableComponent {
         if (document.querySelector('.gallery-container')) {
             return;
         }
+        // Create Element and Swiper
         const container = html`<div class="gallery-container">
             <div class="gallery-controls">
                 <button @click=${this.onGalleryFullscreenClick.bind(this)} title="Fullscreen"><i uk-icon="expand"/></button>
@@ -274,39 +287,17 @@ export default class SectionFileBrowser extends AttachableComponent {
             <div class="bevel-divider"><button class="bevel-button" @click=${this.onGalleryThumbBevelClick.bind(this)} title="Show/Hide Thumbnails">&bullet; &bullet; &bullet;</button></div>
             <div class="swiper swiper-thumbs" thumbsSlider=""><div class="swiper-wrapper"/></div>
         </div>`;
-        document.body.appendChild(container);
-        const main = container.querySelector('.swiper-main');
-        const thumbs = container.querySelector('.swiper-thumbs');
-        const mw = main.querySelector('.swiper-wrapper');
-        const tw = thumbs.querySelector('.swiper-wrapper');
-        for (const row of this.fileTable.getRows()) {
-            const file = row.sortableData;
-            if (!this._isMediaType(file))
-                continue;
-            const url = row.querySelector('.file-link')?.href;
-            const tnUrl = row.querySelector('.thumbnail-container img')?.dataset.src;
-            if (!tnUrl || !url)
-                continue;
-            mw.appendChild(html`<div class="swiper-slide" .file=${file}>
-                <div class="gallery-header"><span class="gallery-filename">${file.name}</span></div>
-                <div class="swiper-zoom-container"><img data-src=${url}></div>
-            </div>`);
-            tw.appendChild(html`<div class="swiper-slide">
-				<div class="gallery-header"><span class="gallery-filename">${file.name}</span></div>
-                <img data-src=${tnUrl}>
-            </div>`);
-        }
-        const thSwiper = new Swiper(thumbs, {
+        const thSwiper = new Swiper(container.querySelector('.swiper-thumbs'), {
             spaceBetween: 10,
             slidesPerView: 5,
             freeMode: true,
             watchSlidesProgress: true,
         });
-        const mainSwiper = new Swiper(main, {
+        const mainSwiper = new Swiper(container.querySelector('.swiper-main'), {
             spaceBetween: 10,
             navigation: {
-                nextEl: ".swiper-button-next",
-                prevEl: ".swiper-button-prev",
+                nextEl: container.querySelector('.swiper-button-next'),
+                prevEl: container.querySelector('.swiper-button-prev'),
             },
             keyboard: {
                 enabled: true,
@@ -315,11 +306,46 @@ export default class SectionFileBrowser extends AttachableComponent {
             thumbs: {
                 swiper: thSwiper,
             },
+            on: {
+                slideChange: function() {
+                    // pause any playing media when navigating away
+                    const active = mainSwiper.slides[mainSwiper.previousIndex];
+                    active.querySelector('video,audio')?.pause();
+                },
+            }
         });
-        for (const thumbnail of container.querySelectorAll('.swiper-slide img')) {
-            UIkit.scrollspy(thumbnail);
-            UIkit.util.on(thumbnail, 'inview', this.fileTable.onThumbnailViewed);
+
+        // Translate the file table to slides
+        for (const row of this.fileTable.getRows()) {
+            const file = row.sortableData;
+            const type = getMediaViewType(file);
+            if (!type)
+                continue;
+            const origUrl = row.querySelector('.file-link')?.href;
+            const tnUrl = row.querySelector('.thumbnail-container img')?.dataset.src;
+            if (!tnUrl || !origUrl)
+                continue;
+            const url = origUrl + '?raw=1';
+
+            // create thumbnail
+            const slideThumb = html`<div class="swiper-slide">
+                <div class="gallery-header"><span class="gallery-filename">${file.name}</span></div>
+                <div class="loading-indicator" uk-spinner />
+            </div>`;
+            this._attachLazyMediaLoader(slideThumb, 'imageNoZoom', tnUrl);
+            thSwiper.appendSlide(slideThumb);
+
+            // create main viewer
+            const slideView = html`<div class="swiper-slide" .file=${file}>
+                <div class="gallery-header"><span class="gallery-filename">${file.name}</span></div>
+                <div class="loading-indicator" uk-spinner />
+            </div>`;
+            this._attachLazyMediaLoader(slideView, type, url);
+            mainSwiper.appendSlide(slideView);
         }
+
+        // attach the finished element
+        document.body.appendChild(container);
     }
 
     _navigateGalleryTo(file) {
@@ -328,21 +354,45 @@ export default class SectionFileBrowser extends AttachableComponent {
             return;
         const mainSwiper = main.swiper;
         for (let i=0; i<mainSwiper.slides.length; i++) {
-            if (mainSwiper.slides[i].file === file) {
+            const slide = mainSwiper.slides[i];
+            if (slide.file === file) {
+                slide.classList.add('initial-clicked');
                 mainSwiper.slideTo(i, 0, false);
                 return;
             }
         }
     }
 
-    _isMediaType(file) {
-        return MEDIA_FILE_EXT.test(file.name);
+    _attachLazyMediaLoader(slide, mediaType, mediaURL) {
+        const spy = UIkit.scrollspy(slide);
+        UIkit.util.on(slide, 'inview', () => {
+            spy.$destroy();
+            const onload = () => {
+                slide.querySelector('.loading-indicator').remove();
+            }
+            const navByCode = slide.classList.contains('initial-clicked');
+            slide.classList.remove('initial-clicked');
+            switch(mediaType) {
+                case 'imageNoZoom':
+                    slide.appendChild(html`<img src=${mediaURL} @load=${onload}/>`);
+                    break;
+                case 'image':
+                    slide.appendChild(html`<div class="swiper-zoom-container"><img src=${mediaURL} @load=${onload}/></div>`);
+                    break;
+                case 'video':
+                    slide.appendChild(html`<video src=${mediaURL} @loadeddata=${onload} controls ?autoplay=${navByCode}/>`);
+                    break;
+                case 'audio':
+                    slide.appendChild(html`<audio src=${mediaURL} @loadeddata=${onload} controls ?autoplay=${navByCode}/>`);
+                    break;
+            }
+        });
     }
 
     onFileLinkClicked(e) {
         const link = e.target;
         const file = link.closest('tr').sortableData;
-        if (this._isMediaType(file)) {
+        if (getMediaViewType(file)) {
             e.preventDefault();
             this._buildGallery();
             this._navigateGalleryTo(file);

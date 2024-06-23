@@ -519,6 +519,14 @@ div.data-row.data-column-center {
 .gallery-container .swiper:hover .gallery-header {
   visibility: visible;
 }
+.gallery-container .swiper-slide .loading-indicator {
+  color: #FFF;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+}
 .gallery-container .swiper-slide {
   text-align: center;
   font-size: 18px;
@@ -530,25 +538,23 @@ div.data-row.data-column-center {
   object-fit: cover;
 }
 .gallery-container .swiper-slide .gallery-header {
-  color: #D2D2D2;
+  color: #FFF;
   text-shadow: 0 0 3px black;
   position: fixed;
   top: 10px;
   font-size: 120%;
 }
-.gallery-container .swiper-slide img {
+.gallery-container .swiper-slide img, .gallery-container .swiper-slide video, .gallery-container .swiper-slide audio {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: scale-down;
 }
 .gallery-container .swiper {
   width: 100%;
 }
 .gallery-container .swiper-main {
   flex-grow: 1;
-}
-.gallery-container .swiper-main .swiper-slide img {
-  object-fit: scale-down;
 }
 .gallery-container .swiper-thumbs {
   flex-grow: 0;
@@ -563,10 +569,15 @@ div.data-row.data-column-center {
   height: 100%;
   opacity: 0.4;
   user-select: none;
+  -moz-user-select: none;
   cursor: pointer;
+  background-color: #555;
 }
 .gallery-container .swiper-thumbs .swiper-slide .gallery-header {
   font-size: 90%;
+  max-width: 100%;
+  overflow-x: hidden;
+  visibility: visible;
 }
 .gallery-container .swiper-thumbs .swiper-slide img {
   object-fit: cover;
@@ -583,6 +594,7 @@ div.data-row.data-column-center {
   flex-direction: row;
   justify-content: center;
   user-select: none;
+  -moz-user-select: none;
 }
 .gallery-container .bevel-divider .bevel-button {
   width: 96px;
