@@ -39,3 +39,12 @@ SyncDrive supports file versioning, trash/undelete functionality and sharing of 
 * `imagick` extension
 * Any database supported by [PDO](https://www.php.net/manual/de/book.pdo.php)
 * a directory writable by the web server process as the `data/` subdirectory 
+
+## Updating
+
+1. Set the configuration value `site.maintenance` to `true`.
+2. Update the code: `git fetch --all && git reset --hard origin/main`
+3. Update submodules: `git submodule update --force`
+4. Install dependencies: `composer install --no-dev -o`
+5. Set the configuration value `site.maintenance` to `false`. The next time the site is visited, all required migrations 
+   will be run.

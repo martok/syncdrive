@@ -14,6 +14,10 @@ server {
     access_log  /var/log/nginx/syncdrive_access.log;
     error_log   /var/log/nginx/syncdrive_error.log;
 
+    # https://blog.cloudflare.com/delivering-http-2-upload-speed-improvements/
+    # make this upstream's buffer larger than the h2 proxy
+    client_body_buffer_size 4M;
+
     location / {
         try_files $uri /index.php$uri$is_args$args;
     }
@@ -33,6 +37,7 @@ server {
         fastcgi_index index.php;
         include fastcgi.conf;
 
+        fastcgi_request_buffering off;
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
 }
