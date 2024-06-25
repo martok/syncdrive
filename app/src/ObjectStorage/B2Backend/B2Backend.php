@@ -16,6 +16,7 @@ use BackblazeB2\Client;
 use BackblazeB2\Exceptions\B2Exception;
 use BackblazeB2\File;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 use Nepf2\Application;
 use Nepf2\Util\Arr;
 use Nepf2\Util\Path;
@@ -23,6 +24,8 @@ use Nepf2\Util\Random;
 
 class B2Backend implements IStorageBackend
 {
+    const UPLOAD_RETRY_DELAY = 2;
+    const UPLOAD_RETRIES = 5;
     private \Psr\Log\LoggerInterface $logger;
     private Client $client;
     private string $bucketName;
@@ -141,13 +144,29 @@ class B2Backend implements IStorageBackend
     public function doUpload(string $fileName, string $data)
     {
         try {
-            return $this->client->upload([
-                'BucketId' => $this->bucketId,
-                'BucketName' => $this->bucketName,
-                'FileName' => $fileName,
-                'Body' => $data,
-                'FileContentType' => 'application/octet-stream'
-            ]);
+            $delay = 0;
+            $exception = null;
+            for ($attempt = 1; $attempt <= self::UPLOAD_RETRIES; $attempt++) {
+                try {
+                    return $this->client->upload([
+                        'BucketId' => $this->bucketId,
+                        'BucketName' => $this->bucketName,
+                        'FileName' => $fileName,
+                        'Body' => $data,
+                        'FileContentType' => 'application/octet-stream'
+                    ]);
+                } catch (ServerException $ex) {
+                    // 5xx responses indicate the upload target is full/down/etc. and should simply be repeated
+                    $exception = $ex;
+                }
+                if ($attempt < self::UPLOAD_RETRIES) {
+                    // First retry immediately, then exponential backoff
+                    sleep($delay);
+                    $delay = max(self::UPLOAD_RETRY_DELAY, $delay * 2);
+                }
+            }
+            // If retries did not help, re-raise the last exception we got for logging
+            throw $exception;
         } catch (B2Exception|ClientException $ex) {
             $this->logger->error('B2 failed doUpload', ['exception' => $ex]);
             throw $ex;
