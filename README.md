@@ -7,6 +7,13 @@ clients as well as allow full access using WebDAV.
 
 SyncDrive supports file versioning, trash/undelete functionality and sharing of files with internal and external users.
 
+## Requirements
+
+* PHP 8.2+
+* `imagick` extension
+* Any database supported by [PDO](https://www.php.net/manual/de/book.pdo.php)
+* a directory writable by the web server process as the `data/` subdirectory
+
 ## Installation
 
 ### Prerequisites
@@ -18,6 +25,8 @@ SyncDrive supports file versioning, trash/undelete functionality and sharing of 
    `apt install php-fpm`
    `apt install php composer php-curl php-imagick php-mysql php-pgsql php-sqlite3 php-xml`
    (PHP depends on "a cgi backend", so make sure to install `php-fpm` first, or it will likely install `apache2`)
+4. When using the B2 backend, authorization caching via APCu is highly recommended:
+   `apt install php-apcu`
 
 ### Install the code
 
@@ -32,13 +41,6 @@ SyncDrive supports file versioning, trash/undelete functionality and sharing of 
    - Example for [PHP development server](doc/support/devel-server.md) (Not for production use!)
 2. Check your setup by navigating to the server location. This will also initialize the database and auxiliary files.
 3. If everything seems to be in order, set the configuration value `site.maintenance` to `false` to start running normally.
-
-## Requirements
-
-* PHP 8.2+
-* `imagick` extension
-* Any database supported by [PDO](https://www.php.net/manual/de/book.pdo.php)
-* a directory writable by the web server process as the `data/` subdirectory 
 
 ## Updating
 
