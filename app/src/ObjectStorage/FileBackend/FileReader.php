@@ -41,8 +41,10 @@ class FileReader extends StreamProtocol
 
     public function stream_close(): void
     {
-        if (!is_null($this->file))
+        if (!is_null($this->file)) {
             fclose($this->file);
+            $this->file = null;
+        }
         $this->eof = true;
     }
 

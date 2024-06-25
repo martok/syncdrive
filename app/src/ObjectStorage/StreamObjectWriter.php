@@ -50,6 +50,11 @@ class StreamObjectWriter extends StreamProtocol
         return null;
     }
 
+    public function hasStream(): bool
+    {
+        return !is_null($this->stream);
+    }
+
     /**
      * @return resource
      */

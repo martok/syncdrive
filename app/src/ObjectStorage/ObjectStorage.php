@@ -189,7 +189,8 @@ class ObjectStorage
             // in case of errors, make sure the temp file is removed
             $backend = $writer->getBackend();
             $object = $writer->getObject();
-            @fclose($hashWriter->getStream());
+            if ($hashWriter->hasStream())
+                @fclose($hashWriter->getStream());
             $backend->removeObject($object);
             throw $e;
         }
