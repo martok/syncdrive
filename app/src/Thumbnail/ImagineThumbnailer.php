@@ -17,6 +17,7 @@ use Imagine\Image\ImageInterface;
 use Imagine\Imagick\Imagine;
 use Nepf2\Util\Path;
 use Nepf2\Util\Random;
+use Psr\Log\LoggerInterface;
 
 class ImagineThumbnailer implements IThumbnailer
 {
@@ -44,7 +45,8 @@ class ImagineThumbnailer implements IThumbnailer
     public function __construct(
         private ObjectStorage $storage,
         private ObjectInfo $sourceObject,
-        private string $sourceFilename)
+        private string $sourceFilename,
+        private LoggerInterface $logger)
     {
     }
 
@@ -54,7 +56,8 @@ class ImagineThumbnailer implements IThumbnailer
             $reader = $this->storage->openReader($this->sourceObject->object);
             $imagine = new Imagine();
             $this->image = $imagine->read($reader);
-        } catch (\Throwable) {
+        } catch (\Throwable $ex) {
+            $this->logger->warning('Failed to load image for ' . $this->sourceFilename, ['exception' => $ex]);
             $this->image = false;
         }
     }

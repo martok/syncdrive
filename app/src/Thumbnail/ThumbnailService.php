@@ -15,13 +15,17 @@ use App\Dav\FS\Node;
 use App\Model\Thumbnails;
 use App\ObjectStorage\ObjectInfo;
 use App\ObjectStorage\ObjectStorage;
+use Psr\Log\LoggerInterface;
 
 class ThumbnailService
 {
+    private LoggerInterface $logger;
+
     public function __construct(
         private Context $context
     )
     {
+        $this->logger = $context->app->getLogChannel('Thumbnail');
     }
 
     /**
@@ -75,7 +79,7 @@ class ThumbnailService
         $result = false;
         $trx = false;
         foreach ($candidates as $candidate) {
-            $obj = new $candidate($this->context->storage, $object, $fileName);
+            $obj = new $candidate($this->context->storage, $object, $fileName, $this->logger);
             assert($obj instanceof IThumbnailer);
             $remainingResolutions = [];
             while ([$wi, $he] = array_shift($resolutions)) {

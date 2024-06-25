@@ -14,6 +14,7 @@ use App\Dav\Perm;
 use App\Dav\TransferChecksums;
 use App\Model;
 use App\ObjectStorage\ObjectStorage;
+use App\Thumbnail\ThumbnailService;
 use Elephox\Mimey\MimeType;
 use Sabre\DAV\Exception;
 use Sabre\DAV\IFile;
@@ -36,6 +37,7 @@ class File extends Node implements IFile
         $etag = self::UpdateFile($this, $object);
         Model\Inodes::db()->commit();
         self::AddUploadHeaders($this);
+        (new ThumbnailService($this->ctx))->maybeCreateThumbnail($object, $this->getName());
         return $etag;
     }
 

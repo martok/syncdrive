@@ -11,10 +11,11 @@ namespace App\Thumbnail;
 
 use App\ObjectStorage\ObjectInfo;
 use App\ObjectStorage\ObjectStorage;
+use Psr\Log\LoggerInterface;
 
 interface IThumbnailer
 {
-    public function __construct(ObjectStorage $storage, ObjectInfo $sourceObject, string $sourceFilename);
+    public function __construct(ObjectStorage $storage, ObjectInfo $sourceObject, string $sourceFilename, LoggerInterface $logger);
 
     public static function Supports(string $fileName): bool;
 
