@@ -12,7 +12,7 @@ namespace App\ObjectStorage\B2Backend;
 use Carbon\Carbon;
 use Psr\Log\LoggerInterface;
 
-class LoggingClient extends \BackblazeB2\Client
+class ExtendedClient extends \BackblazeB2\Client
 {
     private LoggerInterface $logger;
 

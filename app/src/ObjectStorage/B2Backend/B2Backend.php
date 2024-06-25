@@ -43,7 +43,7 @@ class B2Backend implements IStorageBackend
             ]
         ], $config);
         $this->logger = $app->getLogChannel('B2');
-        $this->client = new LoggingClient($this->logger, $config['keyId'], $config['applicationKey']);
+        $this->client = new ExtendedClient($this->logger, $config['keyId'], $config['applicationKey']);
         $this->bucketName = $config['bucketName'];
         $this->bucketId = $config['bucketId'];
         $this->cacheMaxSize = ini_parse_quantity($config['cache']['maxSize']);
