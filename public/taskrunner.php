@@ -7,7 +7,7 @@
  * @license    Apache License
  */
 
-/* @var $app \Nepf2\Application */
+/* @var \Nepf2\Application $app */
 $app = require_once __DIR__ . '/../app/bootstrap.php';
 
 
