@@ -15,6 +15,7 @@ use App\Dav\FS\Node;
 use App\Model\Thumbnails;
 use App\ObjectStorage\ObjectInfo;
 use App\ObjectStorage\ObjectStorage;
+use Elephox\Mimey\MimeType;
 use Psr\Log\LoggerInterface;
 
 class ThumbnailService
@@ -46,11 +47,23 @@ class ThumbnailService
         return true;
     }
 
+    public static function MimeTypeFromFile(string $fileName): ?MimeType
+    {
+        if (!($ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION))))
+            return null;
+
+        if ($mime = MimeType::tryFromExtension($ext))
+            return $mime;
+
+        return null;
+    }
+
     private static function Thumbnailers(): array
     {
-        // use a static variable to avoid loading the classes unless we really need them
+        // use a static variable and plain strings to avoid loading the classes unless we really need them
         static $list = [
-            ImagineThumbnailer::class,
+            '\App\Thumbnail\DirectThumbnailer',
+            '\App\Thumbnail\ImagineThumbnailer',
         ];
         return $list;
     }
@@ -70,14 +83,16 @@ class ThumbnailService
             return false;
         // check what thumbnailers can maybe handle this file type
         $candidates = [];
+        /** @var class-string<IThumbnailer> $thumbnailerClass */
         foreach (self::Thumbnailers() as $thumbnailerClass) {
-            if (call_user_func([$thumbnailerClass, 'Supports'], $fileName, $object->size)) {
+            if ($thumbnailerClass::Supports($fileName, $object->size)) {
                 $candidates[] = $thumbnailerClass;
             }
         }
         // run the thumbnailers until we have all resolutions
         $result = false;
         $trx = false;
+        /** @var class-string<IThumbnailer> $candidate */
         foreach ($candidates as $candidate) {
             $obj = new $candidate($this->context->storage, $object, $fileName, $this->logger);
             assert($obj instanceof IThumbnailer);

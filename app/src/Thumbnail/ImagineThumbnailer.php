@@ -27,11 +27,10 @@ class ImagineThumbnailer implements IThumbnailer
 
     private ImageInterface|bool|null $image = null;
 
-    public static function Supports(string $fileName): bool
+    public static function Supports(string $fileName, int $fileSize): bool
     {
         // Imagick supports most image formats - so we just guess if it is one
-        if (!($ext = pathinfo($fileName, PATHINFO_EXTENSION)) ||
-            !($mime = MimeType::tryFromExtension(strtolower($ext))))
+        if (!($mime = ThumbnailService::MimeTypeFromFile($fileName)))
             return false;
         if (str_starts_with($mime->value, 'image/') ||
             in_array($mime, [

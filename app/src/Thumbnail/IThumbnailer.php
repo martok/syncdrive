@@ -17,7 +17,7 @@ interface IThumbnailer
 {
     public function __construct(ObjectStorage $storage, ObjectInfo $sourceObject, string $sourceFilename, LoggerInterface $logger);
 
-    public static function Supports(string $fileName): bool;
+    public static function Supports(string $fileName, int $fileSize): bool;
 
     public function produce(int $width, int $height, string &$contentType): ?ObjectInfo;
 }
