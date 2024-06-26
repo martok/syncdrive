@@ -21,14 +21,14 @@ function getAndMerge(string $fileName, array $sourceUrls): void
 }
 
 getAndMerge($outDir . '/merged.css', [
-    'https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/css/uikit.min.css',
+    'https://cdn.jsdelivr.net/npm/uikit@3.21/dist/css/uikit.min.css',
     'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
 ]);
 
 getAndMerge($outDir . '/merged.js', [
-    'https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/js/uikit.min.js',
-    'https://cdn.jsdelivr.net/npm/uikit@3.17.4/dist/js/uikit-icons.min.js',
+    'https://cdn.jsdelivr.net/npm/uikit@3.21/dist/js/uikit.min.js',
+    'https://cdn.jsdelivr.net/npm/uikit@3.21/dist/js/uikit-icons.min.js',
     'https://cdn.jsdelivr.net/npm/jquery@3.7/dist/jquery.min.js',
-    'https://cdn.jsdelivr.net/npm/timeago@1.6.7/jquery.timeago.min.js',
+    'https://cdn.jsdelivr.net/npm/timeago@1.6/jquery.timeago.min.js',
     'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
 ]);
