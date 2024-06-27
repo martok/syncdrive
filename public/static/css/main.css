@@ -26,6 +26,12 @@ html {
   padding: 0 10px;
 }
 
+.uk-dropdown,
+.uk-navbar-dropdown {
+  --uk-position-offset: 0;
+  --uk-position-viewport-offset: 0;
+}
+
 .uk-navbar-nav {
   color: #D2D2D2;
   font-weight: bold;

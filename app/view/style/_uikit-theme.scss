@@ -33,6 +33,12 @@ html {
   }
 }
 
+.uk-dropdown,
+.uk-navbar-dropdown {
+  --uk-position-offset: 0;
+  --uk-position-viewport-offset: 0;
+}
+
 .uk-navbar-nav {
   color: $color-text-primary;
   font-weight: bold;
