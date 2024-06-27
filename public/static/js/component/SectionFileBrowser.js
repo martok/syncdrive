@@ -135,15 +135,24 @@ export default class SectionFileBrowser extends AttachableComponent {
     onStorageChanged() {
         const copied = JSON.parse(localStorage.getItem(this.storageKey) ?? '{}');
         const pasteBtn = this.querySelector('#action-paste');
+        const infoMenu = pasteBtn.nextElementSibling.querySelector('ul');
+        infoMenu.innerHTML = '';
         if (copied && copied.operation && copied.paths && copied.paths.length) {
             pasteBtn.disabled = false;
             pasteBtn.lastElementChild.innerText = `(${copied.paths.length})`;
 
-            pasteBtn.title = copied.paths.join('\n');
+            infoMenu.appendChild(html`<li>
+				<button class="uk-button uk-button-link" @click=${this.onToolbarPasteClick.bind(this, 'copy')}><i uk-icon="copy"/> Copy here</button>
+				<button class="uk-button uk-button-link" @click=${this.onToolbarPasteClick.bind(this, 'move')}><i uk-icon="move"/> Move here</button>
+            </li>`);
+            infoMenu.appendChild(html`<li class="uk-nav-divider"/>`);
+            for (const p of copied.paths) {
+                infoMenu.appendChild(html`<li>${p}</li>`);
+            }
         } else {
             pasteBtn.disabled = true;
             pasteBtn.lastElementChild.innerText = '';
-            pasteBtn.title = '';
+            UIkit.dropdown(pasteBtn.nextElementSibling).hide(0);
         }
     }
 
@@ -217,11 +226,12 @@ export default class SectionFileBrowser extends AttachableComponent {
         this.onStorageChanged();
     }
 
-    async onToolbarPasteClick(operation) {
+    async onToolbarPasteClick(operation = null) {
         const copied = JSON.parse(localStorage.getItem(this.storageKey) ?? '{}');
-        if (copied && copied.operation && copied.paths && copied.paths.length) {
+        if (copied && copied.paths && copied.paths.length) {
+            operation ??= copied.operation;
             const result = await apiFetch(`/ajax/file/paste`, {
-                operation: copied.operation,
+                operation: operation,
                 parent: BROWSE_PATH,
                 files: copied.paths,
             });
