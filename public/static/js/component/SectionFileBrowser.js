@@ -84,6 +84,11 @@ export default class SectionFileBrowser extends AttachableComponent {
 
         for (const link of this.querySelectorAll('a.file-link')) {
             link.addEventListener('click', this.onFileLinkClicked.bind(this));
+            const image = link.nextElementSibling.querySelector('img');
+            if (image) {
+                image.addEventListener('click', this.onFileLinkClicked.bind(this));
+                image.style.cursor = 'pointer';
+            }
         }
 
         this.onSelectionChanged();
