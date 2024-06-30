@@ -32,7 +32,8 @@ class ObjectStorage
         'temporary' => self::INTENT_TEMPORARY,
     ];
 
-    private array $backends;
+    /** @var BackendDefinition[] */
+    private array $backends = [];
     private int $chunkSize = self::CHUNK_SIZE_DEFAULT;
     private array $checksumOCAlgos = [];
 
@@ -45,7 +46,6 @@ class ObjectStorage
 
     public function __construct()
     {
-        $this->backends = [];
     }
 
     public function setChunkSize(int $chunkSize): void
@@ -70,19 +70,20 @@ class ObjectStorage
                 throw new Exception('Invalid backend intent: ' . $intent);
             $intentInt |= self::BACKEND_INTENTS[$intent];
         }
-        $this->backends[] = [$intentInt, $backend];
+        $this->backends[] = new BackendDefinition($intentInt, $backend);
+    }
+
+    public function getBackends(): array
+    {
+        return $this->backends;
     }
 
     private function getTempWriter(): IObjectWriter
     {
-        /**
-         * @var int $intent
-         * @var IStorageBackend $backend
-         */
-        foreach ($this->backends as [$intent, $backend]) {
-            if ($intent & self::INTENT_TEMPORARY) {
+        foreach ($this->backends as $bd) {
+            if ($bd->isIntent(self::INTENT_TEMPORARY)) {
                 $tmpName = $this->generateTempIdent();
-                return $backend->openWriter($tmpName);
+                return $bd->backend->openWriter($tmpName);
             }
         }
         throw new Exception('No storage backend for temporary files configured');
@@ -90,13 +91,9 @@ class ObjectStorage
 
     private function getReader(string $object): mixed
     {
-        /**
-         * @var int $intent
-         * @var IStorageBackend $backend
-         */
-        foreach ($this->backends as [$intent, $backend]) {
-            if ($backend->objectExists($object))
-                return $backend->openReader($object);
+        foreach ($this->backends as $bd) {
+            if ($bd->backend->objectExists($object))
+                return $bd->backend->openReader($object);
         }
         return null;
     }
@@ -105,21 +102,17 @@ class ObjectStorage
     {
         $sourceBack = null;
         $destBack = null;
-        /**
-         * @var int $intent
-         * @var IStorageBackend $backend
-         */
-        foreach ($this->backends as [$intent, $backend]) {
-            if ($backend->objectExists($source)) {
-                $sourceBack = $backend;
+        foreach ($this->backends as $bd) {
+            if ($bd->backend->objectExists($source)) {
+                $sourceBack = $bd->backend;
                 break;
             }
         }
         if (is_null($sourceBack))
             throw new Exception('Source file not found');
-        foreach ($this->backends as [$intent, $backend]) {
-            if ($intent & self::INTENT_STORAGE) {
-                $destBack = $backend;
+        foreach ($this->backends as $bd) {
+            if ($bd->isIntent(self::INTENT_STORAGE)) {
+                $destBack = $bd->backend;
                 break;
             }
         }
@@ -148,12 +141,8 @@ class ObjectStorage
     private function removeObject(string $object): int
     {
         $count = 0;
-        /**
-         * @var int $intent
-         * @var IStorageBackend $backend
-         */
-        foreach ($this->backends as [$intent, $backend]) {
-            if ($backend->removeObject($object))
+        foreach ($this->backends as $bd) {
+            if ($bd->backend->removeObject($object))
                 $count++;
         }
         return $count;
