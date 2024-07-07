@@ -35,11 +35,11 @@ export async function apiFetch(endpoint, body = {}, extraOptions = {}) {
     if (resOk)
         return result;
     // handle error states
-    const errTexts = (result && result.error && result.message) ?
-        ['Error ', result.error, ': ', result.message] :
-        ['HTTP Error ', res.status, ': ' + resText];
+    const msg = (result && result.error && result.message) ?
+        html`<div>Error ${result.error}: ${result.message}</div>` :
+        html`<div>HTTP Error ${res.status}: ${resText}</div>`;
     UIkit.notification({
-        message: html`<div>${[...errTexts]}</div>`.innerHTML,
+        message: msg.innerHTML,
         status: 'danger',
     });
     return false;
