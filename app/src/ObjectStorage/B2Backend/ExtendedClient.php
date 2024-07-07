@@ -9,7 +9,11 @@
 
 namespace App\ObjectStorage\B2Backend;
 
+use BackblazeB2\Exceptions\B2Exception;
+use BackblazeB2\File;
 use Carbon\Carbon;
+use GuzzleHttp\Exception\GuzzleException;
+use Iterator;
 use Psr\Log\LoggerInterface;
 
 class ExtendedClient extends \BackblazeB2\Client
@@ -75,5 +79,45 @@ class ExtendedClient extends \BackblazeB2\Client
     {
         $this->logger->info(sprintf('Request: %s %s %s', $method, $route, json_encode($json)));
         return parent::sendAuthorizedRequest($method, $route, $json);
+    }
+
+    /**
+     * Retrieve an iterator for all File objects in a bucket. Doesn't support most options of `listFiles`.
+     *
+     * @param array $options
+     *
+     * @throws GuzzleException If the request fails.
+     * @throws B2Exception     If the B2 server replies with an error.
+     *
+     * @return Iterator<int, File>
+     */
+    public function listFilesIterator(array $options): Iterator
+    {
+        $nextFileName = null;
+        $maxFileCount = 10000;
+
+        if (!isset($options['BucketId']) && isset($options['BucketName'])) {
+            $options['BucketId'] = $this->getBucketIdFromName($options['BucketName']);
+        }
+
+        $this->authorizeAccount();
+
+        // B2 returns, at most, 1000 files per "page". Loop through the pages and compile an array of File objects.
+        do {
+            $response = $this->sendAuthorizedRequest('POST', 'b2_list_file_names', [
+                'bucketId'      => $options['BucketId'],
+                'startFileName' => $nextFileName,
+                'maxFileCount'  => $maxFileCount,
+                'prefix'        => '',
+                'delimiter'     => null,
+            ]);
+
+            foreach ($response['files'] as $file) {
+                $entry = new File($file['fileId'], $file['fileName'], $file['contentSha1'], $file['size'], $file['contentType'], $file['fileInfo'], $file['bucketId'], $file['action'], $file['uploadTimestamp']);
+                yield $entry;
+            }
+
+            $nextFileName = $response['nextFileName'];
+        } while ($nextFileName);
     }
 }

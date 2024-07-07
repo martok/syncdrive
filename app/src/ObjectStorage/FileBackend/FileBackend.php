@@ -11,7 +11,10 @@ namespace App\ObjectStorage\FileBackend;
 
 use App\ObjectStorage\IObjectWriter;
 use App\ObjectStorage\IStorageBackend;
+use App\ObjectStorage\ObjectInfo;
 use App\Streams\CustomStream;
+use Generator;
+use Iterator;
 use Nepf2\Application;
 use Nepf2\Util\Arr;
 use Nepf2\Util\Path;
@@ -101,6 +104,60 @@ class FileBackend implements IStorageBackend
             }
         }
         return $movedAny;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function estimateCapacity(int &$used, int &$available): bool
+    {
+        $available = disk_free_space($this->path);
+        $used = 0;
+        foreach ($this->storedObjectsIterator() as $obj) {
+            $used += $obj->size;
+        }
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function storedObjectsIterator(): Iterator
+    {
+        $currObj = '';
+        $currSize = 0;
+        foreach (scandir($this->path, SCANDIR_SORT_NONE) as $prefix) {
+            if (str_starts_with($prefix, '.'))
+                continue;
+            $prefixPath = Path::Join($this->path, $prefix);
+            if (!is_dir($prefixPath))
+                continue;
+            // need the chunks in ascending order to correctly figure out when the next object starts
+            foreach (scandir($prefixPath, SCANDIR_SORT_ASCENDING) as $chunk) {
+                if (str_starts_with($chunk, '.'))
+                    continue;
+                $pi = pathinfo($chunk);
+                $objName = $prefix . $pi['filename'];
+                $chunkNo = $pi['extension'];
+
+                $fullChunkName = Path::Join($prefixPath, $chunk);
+                if (!($stat = @stat($fullChunkName)))
+                    continue;
+
+                // new file name -> everything collected for current object
+                if ($objName !== $currObj) {
+                    if ($currObj) {
+                        yield new ObjectInfo($currObj, $currSize, '', 0, []);
+                    }
+                    $currObj = $objName;
+                    $currSize = 0;
+                }
+                $currSize += $stat['size'];
+            }
+        }
+        if ($currObj) {
+            yield new ObjectInfo($currObj, $currSize, '', 0, []);
+        }
     }
 
     public function getFileName(string $object, int $chunkIndex): string

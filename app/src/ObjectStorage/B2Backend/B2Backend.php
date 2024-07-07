@@ -11,12 +11,14 @@ namespace App\ObjectStorage\B2Backend;
 
 use App\ObjectStorage\IObjectWriter;
 use App\ObjectStorage\IStorageBackend;
+use App\ObjectStorage\ObjectInfo;
 use App\Streams\CustomStream;
 use BackblazeB2\Client;
 use BackblazeB2\Exceptions\B2Exception;
 use BackblazeB2\File;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
+use Iterator;
 use Nepf2\Application;
 use Nepf2\Util\Arr;
 use Nepf2\Util\Path;
@@ -129,6 +131,52 @@ class B2Backend implements IStorageBackend
         }
 
         return $movedAny;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function estimateCapacity(int &$used, int &$available): bool
+    {
+        $available = -1;
+        $used = 0;
+        // This is stupid. Neither B2 nor S3 API exposes the rough counts, even if they are shown in web UI.
+        foreach ($this->storedObjectsIterator() as $obj) {
+            $used += $obj->size;
+        }
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function storedObjectsIterator(): Iterator
+    {
+        $currObj = '';
+        $currSize = 0;
+        $files = $this->client->listFilesIterator([
+            'BucketId' => $this->bucketId,
+            'BucketName' => $this->bucketName
+        ]);
+        foreach ($files as $file) {
+            if (1 !== preg_match('#^(.*)/([0-9a-f]+)$#i', $file->getName(), $m))
+                continue;
+
+            $objName = $m[1];
+            $chunkNo = $m[2];
+
+            if ($objName !== $currObj) {
+                if ($currObj) {
+                    yield new ObjectInfo($currObj, $currSize, '', 0, []);
+                }
+                $currObj = $objName;
+                $currSize = 0;
+            }
+            $currSize += $file->getSize();
+        }
+        if ($currObj) {
+            yield new ObjectInfo($currObj, $currSize, '', 0, []);
+        }
     }
 
     public function getFileName(string $object, int $chunkIndex): string
@@ -313,4 +361,5 @@ class B2Backend implements IStorageBackend
             throw $ex;
         }
     }
+
 }

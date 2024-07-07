@@ -9,6 +9,7 @@
 
 namespace App\ObjectStorage;
 
+use Iterator;
 use Nepf2\Application;
 
 interface IStorageBackend
@@ -55,4 +56,22 @@ interface IStorageBackend
      * @return bool True if the object was moved successfully
      */
     public function moveObject(string $source, string $dest): bool;
+
+    /**
+     * Get storage statistics estimation. May both over- or underestimate the true value.
+     *
+     * @param int $used total space currently used, or -1 if unknown
+     * @param int $available space available, or -1 if unknown
+     * @return bool True on success
+     */
+    public function estimateCapacity(int &$used, int &$available): bool;
+
+    /**
+     * Iterator (or Generator) of all objects stored by this backend.
+     * The returned ObjectInfo objects may be arbitrarily incomplete, as a general rule,
+     * only trust the object name and size.
+     *
+     * @return Iterator<int, ObjectInfo>
+     */
+    public function storedObjectsIterator(): Iterator;
 }
