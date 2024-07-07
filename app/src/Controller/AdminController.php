@@ -23,9 +23,10 @@ use Nepf2\Request;
 use Nepf2\Response;
 use Nepf2\Util\Arr;
 
+#[Auto\RoutePrefix('/admin')]
 class AdminController extends Base
 {
-    #[Auto\Route('/admin')]
+    #[Auto\Route('/')]
     public function adminOverview(Response $res, Request $req)
     {
         if (!$this->isCurrentUserAdmin()) {
@@ -97,5 +98,75 @@ class AdminController extends Base
         );
 
         return $checks;
+    }
+
+    #[Auto\Route('/storage')]
+    public function adminStorage(Response $res, Request $req)
+    {
+        if (!$this->isCurrentUserAdmin()) {
+            $res->redirect('/');
+            return;
+        }
+
+        $identity = Identity::System();
+        $context = new Context($this->app, $identity);
+        $context->setupStorage();
+
+        $backends = [];
+        foreach ($context->storage->getBackends() as $bd) {
+            $backends[] = [
+                'class' => get_class($bd->backend),
+                'intents' => $bd->intentToStr(),
+            ];
+        }
+
+        $view = $this->initTemplateView('admin_storage.twig');
+        $view->set('backends', $backends);
+        $res->setBody($view->render());
+    }
+
+    #[Auto\Route('/ajax/storage/usage')]
+    public function apiStorageUsage(Response $res, Request $req)
+    {
+        if (!$this->isCurrentUserAdmin()) {
+            $res->standardResponse(403);
+            return;
+        }
+
+        $params = $req->jsonBody();
+        $idx = $params['idx'];
+        $cls = $params['class'];
+
+        if (!is_integer($idx) || !is_string($cls)) {
+            $res->standardResponse(400);
+            return;
+        }
+
+        $identity = Identity::System();
+        $context = new Context($this->app, $identity);
+        $context->setupStorage();
+
+        $defs = $context->storage->getBackends();
+        if (($idx >= count($defs)) ||
+            !($bd = $defs[$idx]) ||
+            (get_class($bd->backend) !== $cls)) {
+            $res->standardResponse(400);
+            return;
+        }
+
+        $used = -1;
+        $avail = -1;
+        if (!$bd->backend->estimateCapacity($used, $avail)) {
+            $res->setJSON([
+                'error' => 'BackendError',
+                'message' => 'Failed to calculate capacity',
+            ]);
+            return;
+        }
+
+        $res->setJSON([
+            'used' => $used,
+            'avail' => $avail
+        ]);
     }
 }

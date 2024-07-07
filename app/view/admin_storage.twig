@@ -1,0 +1,31 @@
+{% extends "base/_frontend_container.twig" %}
+{% set view_title = "Storage Backends" %}
+
+{% block content_main %}
+    <script src="/static/js/component/SectionStorageAdmin.js" type="module"></script>
+
+    <h1>{{ view_title }}</h1>
+
+    <section ac-section-storage-admin>
+        <table class="uk-table uk-table-small uk-table-striped">
+            <thead>
+            <tr>
+                <th class="uk-width-1-5">Nr.</th>
+                <th>Type</th>
+                <th>Intent</th>
+                <th>Usage</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for backend in backends %}
+                <tr data-backend="{{ {id: loop.index0, cls: backend.class} | json_encode }}">
+                    <td>{{ loop.index }}</td>
+                    <td>{{ backend.class }}</td>
+                    <td>{{ backend.intents }}</td>
+                    <td><button class="uk-button uk-button-link"><i uk-icon="refresh"></i> Compute</button></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock %}

@@ -9,7 +9,13 @@
                     <li><a href="/shares">Shares</a></li>
                     {% endif %}
                     {% if user.admin %}
-                        <li><a href="/admin">Admin</a></li>
+                        <li><a href="/admin">Admin</a>
+                            <div class="uk-navbar-dropdown" uk-drop="offset:0">
+                                <ul class="uk-nav uk-navbar-dropdown-nav">
+                                    <li><a href="/admin/storage">Storage</a></li>
+                                </ul>
+                            </div>
+                        </li>
                     {% endif %}
                 {% endif %}
             </ul>

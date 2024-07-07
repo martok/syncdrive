@@ -15,4 +15,15 @@ readonly class BackendDefinition
     {
         return 0 !== ($this->intent & $intent);
     }
+
+    public function intentToStr(): string
+    {
+        $inv = array_flip(ObjectStorage::BACKEND_INTENTS);
+        $intents = [];
+        foreach ($inv as $i => $name) {
+            if ($this->isIntent($i))
+                $intents[] = $name;
+        }
+        return join(', ', $intents);
+    }
 }
