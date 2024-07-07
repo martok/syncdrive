@@ -11,7 +11,7 @@
 $app = require_once __DIR__ . '/../app/bootstrap.php';
 
 
-if ($app->cfg('site.maintenance')) {
+if (App\Manager::InMaintenanceMode($app)) {
     $app->router->addControllers([
         App\Controller\StaticMaintenance::class,
     ]);

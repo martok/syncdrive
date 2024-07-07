@@ -45,26 +45,12 @@ function app_php_config(\Nepf2\Application $app): void
 
 function app_run_migrations(\Nepf2\Application $app): void
 {
-    /** @var \Nepf2\Database\Migrator $migrator */
-    $migrator = $app->db->migrator();
-
-    if (0 == count($migrator->pendingMigrations())) {
-        // nothing to do
-        return;
-    }
-
-    $lockfile = $app->expandPath('data/db_migration.lock');
-    $lock = fopen($lockfile, 'w+');
-    try {
-        if (!$lock || !flock($lock, LOCK_EX | LOCK_NB, $blocked)) {
-            // file error or another process already has the lock, don't continue
+    switch (\App\Manager::RunMigrations($app)) {
+        case \App\Manager::MIGRATION_NOT_REQUIRED:
+        case \App\Manager::MIGRATION_SUCCESS:
+            break;
+        case \App\Manager::MIGRATION_FAIL_LOCKED:
             die('Database upgrade in progress');
-        }
-        // holding the lock, run migrations
-        $migrator->runAll();
-    } finally {
-        // also releases held locks
-        fclose($lock);
     }
 }
 

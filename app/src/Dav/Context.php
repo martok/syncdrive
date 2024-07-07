@@ -12,6 +12,7 @@ namespace App\Dav;
 use App\Dav\FS\Directory;
 use App\Dav\FS\Node;
 use App\Dav\FS\VirtualRoot;
+use App\Manager;
 use App\Model\Inodes;
 use App\ObjectStorage\IStorageBackend;
 use App\ObjectStorage\ObjectInfo;
@@ -32,7 +33,7 @@ class Context
         public Identity $identity
     )
     {
-        $this->isReadonly = $app->cfg('site.readonly') || $app->cfg('site.maintenance');
+        $this->isReadonly = $app->cfg('site.readonly') || Manager::InMaintenanceMode($app);
     }
 
     public function setupStorage(): void
