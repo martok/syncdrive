@@ -98,6 +98,33 @@ class ObjectStorage
         return null;
     }
 
+    public function objectCopy(string $sourceObj, IStorageBackend $sourceBackend,
+                               string $destObj, IStorageBackend $destBackend,
+                               bool $deleteOnSuccess): bool
+    {
+        $reader = $sourceBackend->openReader($sourceObj);
+        try {
+            $wrapWriter = new StreamObjectWriter($destBackend->openWriter($destObj), $this->chunkSize, []);
+            try {
+                $copied = Stream::CopyToStream($reader, $wrapWriter->getStream());
+            } finally {
+                fclose($wrapWriter->getStream());
+            }
+        } finally {
+            fclose($reader);
+        }
+        // must have copied more than for an EMPTY_OBJECT (which is not stored) to be a success
+        if ($copied > 0) {
+            if ($deleteOnSuccess) {
+                return $sourceBackend->removeObject($sourceObj);
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     private function moveObject(string $source, string $dest): bool
     {
         $sourceBack = null;
@@ -126,16 +153,7 @@ class ObjectStorage
         }
 
         // if the fast path is not available or not successful, copy and remove the source
-        $reader = $sourceBack->openReader($source);
-        $wrapWriter = new StreamObjectWriter($destBack->openWriter($dest), $this->chunkSize, []);
-        $copied = Stream::CopyToStream($reader, $wrapWriter->getStream());
-        fclose($reader);
-        fclose($wrapWriter->getStream());
-        if ($copied > 0) {
-            // must have copied more than for an EMPTY_OBJECT
-            return $sourceBack->removeObject($source);
-        }
-        return false;
+        return $this->objectCopy($source, $sourceBack, $dest, $destBack, true);
     }
 
     private function removeObject(string $object): int
@@ -147,7 +165,6 @@ class ObjectStorage
         }
         return $count;
     }
-
 
     private function internalStore(callable $writeMethod): ObjectInfo
     {

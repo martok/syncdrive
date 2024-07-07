@@ -79,6 +79,7 @@ function cli_main(\Nepf2\Application $app): void
     $commandHandlers = [
         App\CLI\CmdCfg::class,
         App\CLI\CmdDB::class,
+        App\CLI\CmdStorage::class,
     ];
     /** @var class-string<App\CLI\BaseCommand> $commandClass */
     foreach ($commandHandlers as $commandClass) {
