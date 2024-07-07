@@ -1,6 +1,8 @@
 <?php
 
-$outDir = realpath(__DIR__ . '/../public/static/lib');
+define('REPO_ROOT', realpath(__DIR__ . '/../../'));
+
+$outDir = realpath(REPO_ROOT . '/public/static/lib');
 
 function getAndMerge(string $fileName, array $sourceUrls): void
 {
