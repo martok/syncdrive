@@ -50,3 +50,8 @@ SyncDrive supports file versioning, trash/undelete functionality and sharing of 
 4. Install dependencies: `composer install --no-dev -o`
 5. Set the configuration value `site.maintenance` to `false`. The next time the site is visited, all required migrations 
    will be run.
+
+## Administration
+
+Most operations are carried out via the web interface or by directly editing `data/config.user.php`.
+For some advanced operations, see [sdctl](doc/sdctl.md).
