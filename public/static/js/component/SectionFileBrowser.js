@@ -307,6 +307,9 @@ export default class SectionFileBrowser extends AttachableComponent {
             slidesPerView: 5,
             freeMode: true,
             watchSlidesProgress: true,
+            mousewheel: {
+                enabled: true,
+            }
         });
         const mainSwiper = new Swiper(container.querySelector('.swiper-main'), {
             spaceBetween: 10,
