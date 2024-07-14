@@ -9,19 +9,12 @@
 
 namespace App\Controller;
 
-use App\Browser\PresentationBase;
 use App\Dav\Context;
-use App\Dav\FS\File;
 use App\Dav\Identity;
-use App\Dav\IIndexableCollection;
-use App\Dav\NodeResolver;
-use App\Model\Inodes;
-use App\Model\InodeShares;
-use App\Model\Users;
+use App\Model;
 use Nepf2\Auto;
 use Nepf2\Request;
 use Nepf2\Response;
-use Nepf2\Util\Arr;
 
 #[Auto\RoutePrefix('/admin')]
 class AdminController extends Base
@@ -168,5 +161,31 @@ class AdminController extends Base
             'used' => $used,
             'avail' => $avail
         ]);
+    }
+
+    #[Auto\Route('/users')]
+    public function adminUsers(Response $res, Request $req)
+    {
+        if (!$this->isCurrentUserAdmin()) {
+            $res->standardResponse(403);
+            return;
+        }
+
+        $list = [];
+        $admins = $this->app->cfg('site.adminUsers');
+        /** @var Model\Users $user */
+        foreach (Model\Users::findAll(['order' => 'username ASC']) as $user) {
+            $root = $user->root();
+            $list[] = [
+                'id' => $user->id,
+                'mail' => $user->username,
+                'is_admin' => in_array($user->id, $admins),
+                'used' => $root->size,
+            ];
+        }
+
+        $view = $this->initTemplateView('admin_users.twig');
+        $view->set('users', $list);
+        $res->setBody($view->render());
     }
 }

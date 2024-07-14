@@ -178,4 +178,61 @@ class UserController extends Base
         }
         $res->redirect('/user/apps');
     }
+
+    #[Auto\Route('/edit', method: ['GET', 'POST'])]
+    #[Auto\Route('/<id>/edit', method: ['GET', 'POST'])]
+    public function edit(Response $res, Request $req, ?int $id = null)
+    {
+        if (!$this->isLoggedIn()) {
+            $res->redirect('/');
+            return;
+        }
+
+        if (is_null($id)) {
+            $id = $this->session->userid;
+        } else {
+            // editing other users requires admin
+            if (!$this->isCurrentUserAdmin()) {
+                $res->standardResponse(403);
+                return;
+            }
+        }
+
+        $adminMode = $this->isCurrentUserAdmin();
+        $editingUser = Model\Users::findOne(['id' => $id]);
+        if (is_null($editingUser->id)) {
+            $res->standardResponse(404);
+            return;
+        }
+
+        $view = $this->initTemplateView('user_edit.twig');
+        $view->set('form_post', $adminMode ? "/user/$id/edit" : '/user/edit');
+        $view->set('form.email', $editingUser->username);
+
+        // just show form?
+        if ($req->getMethod() == 'POST') {
+            // Validate input
+            $passwords = $req->arr('password');
+            $validation = [];
+            $success = (new Validation($validation))
+                ->test('password2',
+                    2 === count($passwords) && $passwords[0] === $passwords[1],
+                    'Passwords do not match!')
+                ->test('password',
+                    2 === count($passwords) && strlen($passwords[0]) >= 8,
+                    'Password too short!')
+                ->succeeded();
+            if (!$success) {
+                $view->set('validation', $validation);
+                $view->set('form.password', $passwords[0] ?? '');
+                $res->setBody($view->render());
+                return;
+            }
+            // Update account
+            $editingUser->password = $passwords[0];
+            $editingUser->save();
+        }
+
+        $res->setBody($view->render());
+    }
 }

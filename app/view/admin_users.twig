@@ -1,0 +1,30 @@
+{% extends "base/_frontend_container.twig" %}
+{% set view_title = "Registered Users" %}
+{% from "macros/general.twig" import timeago_element %}
+
+
+{% block content_main %}
+    <h1>{{ view_title }}</h1>
+    <section>
+        <table class="uk-table uk-table-small uk-table-striped">
+            <thead>
+            <tr>
+                <th style="width: 32px"></th>
+                <th>EMail</th>
+                <th class="uk-width-1-6">Used (with shares)</th>
+                <th class="uk-width-1-6"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{% if user.is_admin %}<i uk-icon="star">{% endif %}</td>
+                    <td>{{ user.mail }}</td>
+                    <td>{{ user.used | filesize }}</td>
+                    <td><a href="/user/{{ user.id }}/edit"><i uk-icon="pencil"></i> Edit</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock %}

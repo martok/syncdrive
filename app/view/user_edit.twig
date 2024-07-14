@@ -1,0 +1,44 @@
+{% extends "base/_frontend_container.twig" %}
+{% from "macros/validation.twig" import vstyle %}
+{% set view_title = "Edit User" %}
+
+{% block content_main %}
+    <h1>Edit User</h1>
+    <section>
+        <form action="{{ form_post }}" method="POST" class="uk-form-horizontal">
+            <div>
+                <label class="uk-form-label" for="username">Email address (not editable)</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input" type="email" disabled value="{{ form.email }}">
+                </div>
+            </div>
+
+            <div>
+                <label class="uk-form-label" for="password">Change Password</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input {{ vstyle(validation.password) }}"
+                           id="password" name="password[]"
+                           type="password" placeholder="(Unchanged)" value="{{ form.password }}">
+                    {% if not validation.password is same as(true) %}
+                        <div class="uk-text-danger">{{ validation.password }}</div>
+                    {% endif%}
+                </div>
+            </div>
+
+            <div>
+                <label class="uk-form-label" for="password2">Repeat Password</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input {{ vstyle(validation.password2,true) }}"
+                           id="password2" name="password[]"
+                           type="password" placeholder="Repeat Password">
+                    {% if not validation.password2 is same as(true) %}
+                        <div class="uk-text-danger">{{ validation.password2 }}</div>
+                    {% endif%}
+                </div>
+            </div>
+
+            <button class="uk-button uk-button-primary" type="submit">Update Profile</button>
+        </form>
+        <p></p>
+    </section>
+{% endblock %}
